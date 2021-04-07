@@ -54,6 +54,4 @@ public class HomeController extends Controller {
         return res;
     }
 
-
-
 }
