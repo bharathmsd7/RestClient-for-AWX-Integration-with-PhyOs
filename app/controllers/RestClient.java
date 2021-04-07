@@ -19,11 +19,8 @@ import play.libs.Json;
 import play.libs.ws.WSAuthScheme;
 import play.libs.ws.WSClient;
 import play.libs.ws.WSResponse;
-import play.mvc.Controller;
 import play.mvc.Http;
 import com.fasterxml.jackson.databind.JsonNode;
-import play.mvc.Result;
-
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -39,8 +36,26 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+interface restclient{
+
+    Integer getRequest(String ipAddress, String path) throws InterruptedException, ExecutionException, TimeoutException;
+    String getRequestWithJson(String ipAddress, String path) throws InterruptedException, ExecutionException,
+            TimeoutException;
+    JsonNode getRequestWithJsonAndTakeJson(String ipAddress, String path) throws InterruptedException, ExecutionException,
+            TimeoutException;
+    String getJsonString(String ipAddress, String path, long timeout) throws InterruptedException,
+            ExecutionException, TimeoutException;
+    File getFile(String ipAddress, String path, long timeout) throws InterruptedException,
+            ExecutionException, TimeoutException, IOException;
+    Optional<String> getWithRetry(String ipAddress, String endpoint, int attempts, int timeout);
+    String postRequestMultipartFormData(String ipAddress, String path, Map<String, File> fileData, Map<String, String> formData, int timeout, Http.Cookie cookie);
+    JsonNode postRequestWithoutData(String ipAddress, String path) throws InterruptedException,
+            ExecutionException, TimeoutException;
+    boolean isJsonValid(String test);
+}
+
 @Singleton
-public class RestClient {
+class RestClient implements restclient{
 
     private static final ALogger LOGGER = Logger.of(RestClient.class);
     private final WSClient wsClient;
@@ -51,7 +66,8 @@ public class RestClient {
         this.wsClient = wsClient;
     }
 
-    public int getRequest(String ipAddress, String path) throws InterruptedException, ExecutionException, TimeoutException {
+
+    public Integer getRequest(String ipAddress, String path) throws InterruptedException, ExecutionException, TimeoutException {
         if (ipAddress == null || ipAddress.isEmpty() || path == null || path.isEmpty()) {
             return -1;
         }
@@ -63,6 +79,7 @@ public class RestClient {
         return res;
     }
 
+
     public String getRequestWithJson(String ipAddress, String path) throws InterruptedException, ExecutionException,
             TimeoutException {
         if (ipAddress == null || ipAddress.isEmpty() || path == null || path.isEmpty()) {
@@ -70,12 +87,12 @@ public class RestClient {
         }
         //  Basic Authorization
         //  wsClient.url(StringConstants + ipAddress + path).setAuth("admin", "password", WSAuthScheme.BASIC).get();
-        CompletionStage<WSResponse> response = wsClient.url(StringConstants + ipAddress + path).setAuth("admin", "password", WSAuthScheme.BASIC).setContentType("application/json").get();
+        CompletionStage<WSResponse> response = wsClient.url(ipAddress + path).setAuth("admin", "password", WSAuthScheme.BASIC).setContentType("application/json").get();
         if (response == null) {
             return null;
         }
 
-        WSResponse wsResponse = response.toCompletableFuture().get(5000, TimeUnit.SECONDS);
+        WSResponse wsResponse = response.toCompletableFuture().get(1000, TimeUnit.SECONDS);
         String res = wsResponse.getBody();
         LOGGER.debug(new StringBuilder(ipAddress).append(path).append(" ").append(res).toString());
         if(wsResponse.getStatus() == 401){
@@ -89,13 +106,31 @@ public class RestClient {
         return res;
     }
 
+
+    public JsonNode getRequestWithJsonAndTakeJson(String ipAddress, String path) throws InterruptedException, ExecutionException,
+            TimeoutException {
+        if (ipAddress == null || ipAddress.isEmpty() || path == null || path.isEmpty()) {
+            return null;
+        }
+        //  Basic Authorization
+        //  wsClient.url(StringConstants + ipAddress + path).setAuth("admin", "password", WSAuthScheme.BASIC).get();
+        CompletionStage<WSResponse> response = wsClient.url(ipAddress + path).setAuth("admin", "password", WSAuthScheme.BASIC).setContentType("application/json").get();
+        if (response == null) {
+            return null;
+        }
+
+        JsonNode res = response.toCompletableFuture().get(1000, TimeUnit.SECONDS).asJson();
+        return res;
+    }
+
+
     public String getJsonString(String ipAddress, String path, long timeout) throws InterruptedException,
             ExecutionException, TimeoutException {
         if (ipAddress == null || ipAddress.isEmpty() || path == null || path.isEmpty()) {
             return null;
         }
         LOGGER.info("sending rest request " + (ipAddress+path));
-        CompletionStage<WSResponse> response = wsClient.url(ipAddress + path).setContentType("application/json").get();
+        CompletionStage<WSResponse> response = wsClient.url(ipAddress + path).setAuth("admin", "password", WSAuthScheme.BASIC).setContentType("application/json").get();
         if (response == null) {
             return null;
         }
@@ -107,11 +142,11 @@ public class RestClient {
             // FIXME null is not propriate
             LOGGER.debug(new StringBuilder(ipAddress).append(path).append(" ").append(wsResponse.getStatus())
                     .toString());
-
             return null;
         }
         return res;
     }
+
 
     public File getFile(String ipAddress, String path, long timeout) throws InterruptedException,
             ExecutionException, TimeoutException, IOException {
@@ -130,7 +165,6 @@ public class RestClient {
             // FIXME null is not propriate
             LOGGER.debug(new StringBuilder(ipAddress).append(path).append(" ").append(wsResponse.getStatus())
                     .toString());
-
             return null;
         }
         Optional<String> cdHeader = wsResponse.getSingleHeader("Content-Disposition");
@@ -170,6 +204,7 @@ public class RestClient {
         }
         return result;
     }
+
     public JsonNode postRequest(String ipAddress, String path, String data, int timeout) throws IOException {
 
         if (ipAddress == null || ipAddress.isEmpty() || path == null || path.isEmpty() || data == null) {
@@ -262,7 +297,7 @@ public class RestClient {
         if (ipAddress == null || ipAddress.isEmpty() || path == null || path.isEmpty()) {
             return null;
         }
-        CompletionStage<WSResponse> response = wsClient.url(ipAddress + path).setContentType("application/json")
+        CompletionStage<WSResponse> response = wsClient.url(ipAddress + path).setAuth("admin", "password", WSAuthScheme.BASIC).setContentType("application/json")
                 .post("");
         if (response == null) {
             return null;
