@@ -1,13 +1,20 @@
-@(response: String )
+@(response: String , r : String, time : String)
 
 <html>
     <head>
-        <title>RestClient</title>
+        <title>Post Request</title>
     </head>
     <body>
 
-        <h1>INDEX 2</h1>
-        <p>Response : @response </p>
+        <h2>POST REQUEST WITHOUT DATA</h2>
+        <h2>Job id :</h2><p> @response </p>
+        <br>
+        <h2>Time :</h2> <p>@time</p>
+        <br>
+        <h2>Status :</h2>
+        <p>@r</p>
+
+
 
     </body>
 </html>
