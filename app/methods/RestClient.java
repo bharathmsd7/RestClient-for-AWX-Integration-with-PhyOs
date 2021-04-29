@@ -318,4 +318,18 @@ class RestClient implements restclient{
         return true;
     }
 
+    public JsonNode postRequestWithData(String ipAddress, String path, String data, String username, String password) throws InterruptedException,
+            ExecutionException, TimeoutException {
+        if (ipAddress == null || ipAddress.isEmpty() || path == null || path.isEmpty() || data == null || data.isEmpty() || username == null || username.isEmpty() || password == null || password.isEmpty()){
+            return null;
+        }
+        CompletionStage<WSResponse> response = wsClient.url(ipAddress + path).setAuth(username, password, WSAuthScheme.BASIC).setContentType("application/json")
+                .post(data);
+        if (response == null) {
+            return null;
+        }
+        JsonNode res = response.toCompletableFuture().get(1000, TimeUnit.SECONDS).asJson();
+        return res;
+    }
+
 }
