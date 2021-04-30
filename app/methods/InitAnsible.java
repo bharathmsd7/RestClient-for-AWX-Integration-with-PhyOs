@@ -13,8 +13,8 @@ import static utils.Constants.*;
 
 public class InitAnsible {
 
-    private RestClient rc;
-    private Config config;
+    private final RestClient rc;
+    private final Config config;
     private Integer responseStatus;
     private String IPADDRESS;
 
@@ -44,11 +44,23 @@ public class InitAnsible {
         else{
             Logger.error("Response is not valid : ",responseStatus);
         }
+    }
 
+    private void CreateHost(){
+        String DATA = "{\n" +
+                "  \"enabled\": true,\n" +
+                "  \"inventory\": 17,\n" +
+                "  \"name\": \"192.168.1.73\"\n" +
+                "}";
+        try {
+            JsonNode temp = rc.postRequestWithData(IPADDRESS, ANSIBLE_HOSTS_PATH, DATA, ANSIBLE_TOWER_USERNAME, ANSIBLE_TOWER_PASSWORD);
+            System.out.println(temp);
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            e.printStackTrace();
+        }
     }
 
     private void CreateInventory() {
-
         String DATA = "{\n" +
                 "  \"name\": \"inventoryname1\",\n" +
                 "  \"organization\": 1\n" +
@@ -90,25 +102,13 @@ public class InitAnsible {
                 "  \"project\": 42\n" +
                 "}";
         try {
-            JsonNode temp = rc.postRequestWithData(IPADDRESS, ANSIBLE_JOBTEMPLATE_PATH, DATA, ANSIBLE_TOWER_USERNAME, ANSIBLE_TOWER_PASSWORD);
+            JsonNode temp = rc.postRequestWithData(IPADDRESS, ANSIBLE_JOB_TEMPLATE_PATH, DATA, ANSIBLE_TOWER_USERNAME, ANSIBLE_TOWER_PASSWORD);
             System.out.println(temp);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             e.printStackTrace();
         }
     }
 
-    private void CreateHost(){
-        String DATA = "{\n" +
-                "  \"enabled\": true,\n" +
-                "  \"inventory\": 17,\n" +
-                "  \"name\": \"192.168.1.73\"\n" +
-                "}";
-        try {
-            JsonNode temp = rc.postRequestWithData(IPADDRESS, ANSIBLE_HOSTS_PATH, DATA, ANSIBLE_TOWER_USERNAME, ANSIBLE_TOWER_PASSWORD);
-            System.out.println(temp);
-        } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            e.printStackTrace();
-        }
-    }
+
 
 }

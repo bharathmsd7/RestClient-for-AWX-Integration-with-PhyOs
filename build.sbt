@@ -18,6 +18,9 @@ libraryDependencies += "org.apache.httpcomponents" % "httpclient" % "4.5.13"
 // https://mvnrepository.com/artifact/org.apache.httpcomponents/httpmime
 libraryDependencies += "org.apache.httpcomponents" % "httpmime" % "4.5.9"
 
+// https://mvnrepository.com/artifact/org.mongodb.morphia/morphia
+libraryDependencies += "org.mongodb.morphia" % "morphia" % "1.3.2"
+
 libraryDependencies += ehcache
 
 libraryDependencies ++= Seq(
