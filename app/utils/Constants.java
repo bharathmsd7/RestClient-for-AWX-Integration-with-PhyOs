@@ -1,6 +1,5 @@
 package utils;
 
-
 public class Constants {
 
     public static final String ANSIBLE_PING_PATH = "/api/v2/ping/";

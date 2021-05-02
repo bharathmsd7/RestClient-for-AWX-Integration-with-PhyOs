@@ -6,14 +6,11 @@ import views.html.index;
 
 import play.libs.Json;
 import javax.inject.Inject;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.TimeZone;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import com.fasterxml.jackson.databind.JsonNode;
 import methods.InitAnsible.*;
-import views.html.postrequest;
+
 
 public class HomeController extends Controller {
 
