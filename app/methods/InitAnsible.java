@@ -1,5 +1,6 @@
 package methods;
 
+import java.util.Random;
 import javax.inject.Inject;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.typesafe.config.Config;
@@ -14,8 +15,8 @@ public class InitAnsible {
     private Integer responseStatus;
     private String IPADDRESS;
 
-    private final RestClient RC;
-    private final Config CONFIG;
+    private RestClient RC;
+    private Config CONFIG;
 
     @Inject
     public InitAnsible(RestClient rc, Config config)
@@ -24,12 +25,14 @@ public class InitAnsible {
         this.CONFIG = config;
     }
 
-    @Inject
-    public void InitAnsibleTemplates()
+
+    public void InitAnsibleSteps()
     {
         IPADDRESS = CONFIG.getString("ANSIBLE_NODE_IP");
+        System.out.println(IPADDRESS);
         try {
             responseStatus = RC.getRequest(IPADDRESS, ANSIBLE_PING_PATH);
+            System.out.println("response : "+ responseStatus );
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             e.printStackTrace();
             Logger.error("Unable to PING Ansible Tower : ", e);
@@ -37,14 +40,13 @@ public class InitAnsible {
 
         if (responseStatus == 200)
         {
-            String inventory_name = "default";
             String scm_url = "https://github.com/ansible/test-playbooks.git";
             String playbookName = "hello world.yml";
-            String InventoryId = CreateInventory(inventory_name);
-            String ProjectId = CreateProject(scm_url);
-            String JobTemplateId = CreateJobTemplate(InventoryId, ProjectId, playbookName);
+            String InventoryId = CreateInventory();
             System.out.println("I Id :" + InventoryId);
+            String ProjectId = CreateProject(scm_url);
             System.out.println("P Id :" + ProjectId);
+            String JobTemplateId = CreateJobTemplate(InventoryId, ProjectId, playbookName);
             System.out.println("J Id :" + JobTemplateId);
         }
 
@@ -67,13 +69,18 @@ public class InitAnsible {
         }
     }
 
-    private String CreateInventory(String inventory_name) {
-        String DATA = "{\n" +
-                "  \"name\": " + inventory_name +
-                "  \"organization\": 1\n" +
+    private String CreateInventory() {
+        String name = getRandomName();
+
+        String SATA = "{\n" +
+                "  \"organization\": 1,\n" +
+                "  \"name\": \"%s\"\n"+
                 "}";
+        String DATA =  String.format(SATA, name);
+       
         try {
             JsonNode temp = RC.postRequestWithData(IPADDRESS, ANSIBLE_INVENTORY_PATH, DATA, ANSIBLE_TOWER_USERNAME, ANSIBLE_TOWER_PASSWORD);
+
             if (temp != null)
             {
                 return temp.get("id").asText();
@@ -85,18 +92,21 @@ public class InitAnsible {
         return null;
     }
 
-    private String CreateProject( String scm_url) {
-
-        String DATA = "{\n" +
+    private String CreateProject(String scm_url) {
+        String name = getRandomName();
+        String SATA = "{\n" +
                 "  \"allow_override\": true,\n" +
-                "  \"name\": \"sample_project\",\n" +
+                "  \"name\": \"%s\",\n" +
                 "  \"organization\": 1,\n" +
                 "  \"scm_type\": \"git\",\n" +
-                "  \"scm_url\": " + scm_url +
+                "  \"scm_url\": \"%s\"\n"+
                 "}";
+        String DATA =  String.format(SATA, name, scm_url);
+
         try {
             JsonNode temp = RC.postRequestWithData(IPADDRESS, ANSIBLE_PROJECT_PATH, DATA, ANSIBLE_TOWER_USERNAME, ANSIBLE_TOWER_PASSWORD);
             if (temp != null) {
+
                 return temp.get("id").asText();
             }
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
@@ -106,13 +116,15 @@ public class InitAnsible {
     }
 
     private String CreateJobTemplate(String inventoryId, String projectId, String playbookName) {
-        String DATA ="{\n" +
-                "  \"inventory\":" + inventoryId + ",\n" +
-                "  \"name\": \"foobar\",\n" +
+        String name = getRandomName();
+        String SATA ="{\n" +
+                "  \"inventory\": \"%s\" ,\n" +
+                "  \"name\": \"%s\" ,\n" +
                 "  \"organization\": 1,\n" +
-                "  \"playbook\": "+ playbookName+ ",\n" +
-                "  \"project\": "+projectId+"\n" +
+                "  \"playbook\": \"%s\" ,\n" +
+                "  \"project\": \"%s\" \n" +
                 "}";
+        String DATA =  String.format(SATA, inventoryId, name, playbookName, projectId);
         try {
             JsonNode temp = RC.postRequestWithData(IPADDRESS, ANSIBLE_JOB_TEMPLATE_PATH, DATA, ANSIBLE_TOWER_USERNAME, ANSIBLE_TOWER_PASSWORD);
             if (temp != null) {
@@ -124,5 +136,16 @@ public class InitAnsible {
         return null;
     }
 
+    private String getRandomName()
+    {
+        String SALTCHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        StringBuilder salt = new StringBuilder();
+        Random rnd = new Random();
+        while (salt.length() < 18) { // length of the random string.
+            int index = (int) (rnd.nextFloat() * SALTCHARS.length());
+            salt.append(SALTCHARS.charAt(index));
+        }
+        return (salt.toString());
+    }
 
 }

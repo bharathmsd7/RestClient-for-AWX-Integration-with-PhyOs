@@ -313,6 +313,7 @@ class RestClient implements restclient{
             if (ex.getCause() != null && ex.getCause() instanceof com.fasterxml.jackson.core.JsonParseException) {
                 return false;
             }
+
             throw ex;
         }
         return true;

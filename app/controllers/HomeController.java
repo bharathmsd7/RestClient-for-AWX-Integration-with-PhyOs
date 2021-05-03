@@ -17,8 +17,6 @@ public class HomeController extends Controller {
     public restclient rc;
     public Integer responsestatus;
     private String ip = "http://192.168.1.72";
-    private String path = "/api/v2/job_templates/9/launch/";
-    private JsonNode temp = null;
     public InitAnsible initAnsible;
 
     @Inject
@@ -28,7 +26,8 @@ public class HomeController extends Controller {
     }
 
     public Result index() throws InterruptedException, ExecutionException, TimeoutException {
-        responsestatus = rc.getRequest("http://192.168.1.72","/api/v2/");
+        responsestatus = rc.getRequest(ip,"/api/v2/");
+        initAnsible.InitAnsibleSteps();
         return ok(index.render( responsestatus ));
     }
 
