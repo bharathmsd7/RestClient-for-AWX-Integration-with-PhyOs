@@ -1,12 +1,22 @@
 package methods;
 
+import java.io.IOException;
+import java.util.List;
 import java.util.Random;
 import javax.inject.Inject;
+
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.typesafe.config.Config;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import play.Logger;
+import play.libs.Json;
+import scala.collection.immutable.Map;
+import scala.util.parsing.json.JSONObject;
+
 import static utils.Constants.*;
 
 //@Entity(value="Ansible", noClassnameStored = true)
@@ -14,9 +24,10 @@ public class InitAnsible {
     //@Id
     private Integer responseStatus;
     private String IPADDRESS;
-
     private RestClient RC;
     private Config CONFIG;
+
+    private Config ANSIBLE_PRODUCTS;
 
     @Inject
     public InitAnsible(RestClient rc, Config config)
@@ -25,11 +36,10 @@ public class InitAnsible {
         this.CONFIG = config;
     }
 
-
     public void InitAnsibleSteps()
     {
         IPADDRESS = CONFIG.getString("ANSIBLE_NODE_IP");
-        System.out.println(IPADDRESS);
+
         try {
             responseStatus = RC.getRequest(IPADDRESS, ANSIBLE_PING_PATH);
             System.out.println("response : "+ responseStatus );
@@ -40,30 +50,50 @@ public class InitAnsible {
 
         if (responseStatus == 200)
         {
-            String scm_url = "https://github.com/ansible/test-playbooks.git";
+            /*String scm_url = "https://github.com/ansible/test-playbooks.git";
             String playbookName = "hello world.yml";
+            String HostIP = "192.168.1.73";
             String InventoryId = CreateInventory();
-            System.out.println("I Id :" + InventoryId);
+            System.out.println("INVENTORY Id :" + InventoryId);
             String ProjectId = CreateProject(scm_url);
-            System.out.println("P Id :" + ProjectId);
+            System.out.println("PROJECT Id :" + ProjectId);
             String JobTemplateId = CreateJobTemplate(InventoryId, ProjectId, playbookName);
-            System.out.println("J Id :" + JobTemplateId);
-        }
+            System.out.println("JOB TEMPLATE Id :" + JobTemplateId);
+            UpdateInventory(InventoryId, HostIP);
+            LaunchJobTemplate(JobTemplateId);*/
 
+            ANSIBLE_PRODUCTS = CONFIG.getConfig("ANSIBLE_PRODUCTS");
+            ObjectNode ansibleconf = (ObjectNode) Json.toJson(ANSIBLE_PRODUCTS.root().unwrapped());
+            //System.out.println(ansibleconf);
+
+            String a = String.valueOf(ansibleconf.findParent("gitlab"));
+            System.out.println(a);
+
+        }
         else{
             Logger.error("Response is not valid : ",responseStatus);
         }
     }
 
-    private void CreateHost(){
-        String DATA = "{\n" +
-                "  \"enabled\": true,\n" +
-                "  \"inventory\": 17,\n" +
-                "  \"name\": \"192.168.1.73\"\n" +
-                "}";
+    private void LaunchJobTemplate(String jobtemplateId) {
+        String PATH = ANSIBLE_JOB_TEMPLATE_PATH + jobtemplateId + "/launch/";
         try {
-            JsonNode temp = RC.postRequestWithData(IPADDRESS, ANSIBLE_HOSTS_PATH, DATA, ANSIBLE_TOWER_USERNAME, ANSIBLE_TOWER_PASSWORD);
+            String temp = RC.getRequestWithJson( IPADDRESS , PATH , ANSIBLE_TOWER_USERNAME, ANSIBLE_TOWER_PASSWORD);
             System.out.println(temp);
+        } catch (InterruptedException | ExecutionException | TimeoutException e){
+            e.printStackTrace();
+        }
+    }
+
+    private void UpdateInventory(String inventoryId, String hostIP) {
+        String SATA = "{\n" +
+                "  \"description\": \"Hello world\",\n" +
+                "  \"name\": \"%s\"\n" +
+                "}";
+        String DATA = String.format(SATA, hostIP);
+        String PATH = ANSIBLE_INVENTORY_PATH + inventoryId + "/hosts/";
+        try {
+            JsonNode temp = RC.postRequestWithData(IPADDRESS, PATH, DATA, ANSIBLE_TOWER_USERNAME, ANSIBLE_TOWER_PASSWORD);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             e.printStackTrace();
         }
@@ -71,7 +101,6 @@ public class InitAnsible {
 
     private String CreateInventory() {
         String name = getRandomName();
-
         String SATA = "{\n" +
                 "  \"organization\": 1,\n" +
                 "  \"name\": \"%s\"\n"+
@@ -136,8 +165,7 @@ public class InitAnsible {
         return null;
     }
 
-    private String getRandomName()
-    {
+    private String getRandomName() {
         String SALTCHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
         StringBuilder salt = new StringBuilder();
         Random rnd = new Random();

@@ -39,7 +39,7 @@ import java.util.concurrent.TimeoutException;
 interface restclient{
 
     Integer getRequest(String ipAddress, String path) throws InterruptedException, ExecutionException, TimeoutException;
-    String getRequestWithJson(String ipAddress, String path) throws InterruptedException, ExecutionException,
+    String getRequestWithJson(String ipAddress, String path, String userame , String password) throws InterruptedException, ExecutionException,
             TimeoutException;
     JsonNode getRequestWithJsonAndTakeJson(String ipAddress, String path) throws InterruptedException, ExecutionException,
             TimeoutException;
@@ -80,14 +80,14 @@ class RestClient implements restclient{
     }
 
 
-    public String getRequestWithJson(String ipAddress, String path) throws InterruptedException, ExecutionException,
+    public String getRequestWithJson(String ipAddress, String path, String username, String password) throws InterruptedException, ExecutionException,
             TimeoutException {
         if (ipAddress == null || ipAddress.isEmpty() || path == null || path.isEmpty()) {
             return null;
         }
         //  Basic Authorization
         //  wsClient.url(StringConstants + ipAddress + path).setAuth("admin", "password", WSAuthScheme.BASIC).get();
-        CompletionStage<WSResponse> response = wsClient.url(ipAddress + path).setAuth("admin", "password", WSAuthScheme.BASIC).setContentType("application/json").get();
+        CompletionStage<WSResponse> response = wsClient.url(ipAddress + path).setAuth(username, password, WSAuthScheme.BASIC).setContentType("application/json").get();
         if (response == null) {
             return null;
         }
