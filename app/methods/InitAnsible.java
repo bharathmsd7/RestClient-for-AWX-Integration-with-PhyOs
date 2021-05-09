@@ -12,8 +12,11 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.typesafe.config.Config;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
+
+import com.typesafe.config.ConfigList;
 import play.Logger;
 import play.libs.Json;
+import scala.collection.immutable.HashMap;
 import scala.collection.immutable.Map;
 import scala.util.parsing.json.JSONObject;
 
@@ -28,6 +31,7 @@ public class InitAnsible {
     private Config CONFIG;
 
     private Config ANSIBLE_PRODUCTS;
+    private List ANSIBLEPRODUCTSLISTS;
 
     @Inject
     public InitAnsible(RestClient rc, Config config)
@@ -63,11 +67,22 @@ public class InitAnsible {
             LaunchJobTemplate(JobTemplateId);*/
 
             ANSIBLE_PRODUCTS = CONFIG.getConfig("ANSIBLE_PRODUCTS");
+            ANSIBLEPRODUCTSLISTS = CONFIG.getStringList("ANSIBLEPRODUCTSLISTS");
             ObjectNode ansibleconf = (ObjectNode) Json.toJson(ANSIBLE_PRODUCTS.root().unwrapped());
-            //System.out.println(ansibleconf);
 
-            String a = String.valueOf(ansibleconf.findParent("gitlab"));
-            System.out.println(a);
+            for (Object t : ANSIBLEPRODUCTSLISTS){
+                JsonNode a = ansibleconf.get(t.toString());
+                String scm_url = String.valueOf(a.get("scmurl"));
+                String scmurl = scm_url.substring(1, scm_url.length()-1);
+                String playbookName = String.valueOf(a.get("playbook"));
+                String playbookname = playbookName.substring(1, playbookName.length()-1);
+                String InventoryId = CreateInventory();
+                System.out.println("INVENTORY Id :" + InventoryId);
+                String ProjectId = CreateProject(scmurl);
+                System.out.println("PROJECT Id :" + ProjectId);
+                String JobTemplateId = CreateJobTemplate(InventoryId, ProjectId, playbookname);
+                System.out.println("JOB TEMPLATE Id :" + JobTemplateId);
+            }
 
         }
         else{
@@ -131,11 +146,10 @@ public class InitAnsible {
                 "  \"scm_url\": \"%s\"\n"+
                 "}";
         String DATA =  String.format(SATA, name, scm_url);
-
+        //System.out.println(DATA);
         try {
             JsonNode temp = RC.postRequestWithData(IPADDRESS, ANSIBLE_PROJECT_PATH, DATA, ANSIBLE_TOWER_USERNAME, ANSIBLE_TOWER_PASSWORD);
             if (temp != null) {
-
                 return temp.get("id").asText();
             }
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
