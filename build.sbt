@@ -7,22 +7,14 @@ lazy val root = (project in file(".")).enablePlugins(PlayJava)
 
 scalaVersion := "2.12.4"
 
-libraryDependencies += guice
-
-libraryDependencies += ws
-
-// https://mvnrepository.com/artifact/commons-io/commons-io
-libraryDependencies += "commons-io" % "commons-io" % "2.8.0"
-// https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient
-libraryDependencies += "org.apache.httpcomponents" % "httpclient" % "4.5.13"
-// https://mvnrepository.com/artifact/org.apache.httpcomponents/httpmime
-libraryDependencies += "org.apache.httpcomponents" % "httpmime" % "4.5.9"
-
-// https://mvnrepository.com/artifact/org.mongodb.morphia/morphia
-libraryDependencies += "org.mongodb.morphia" % "morphia" % "1.3.2"
-
-libraryDependencies += ehcache
-
 libraryDependencies ++= Seq(
-  cacheApi
+  guice,
+  ws,
+  ehcache,
+  cacheApi,
+  "commons-io" % "commons-io" % "2.8.0",
+  "org.apache.httpcomponents" % "httpclient" % "4.5.13",
+  "org.apache.httpcomponents" % "httpmime" % "4.5.9",
+  "org.mongodb.morphia" % "morphia" % "1.3.2",
+  "org.mongodb" % "mongo-java-driver" % "3.7.0"
 )

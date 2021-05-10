@@ -5,26 +5,27 @@ import java.util.List;
 import java.util.Random;
 import javax.inject.Inject;
 
-import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.typesafe.config.Config;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
-import com.typesafe.config.ConfigList;
+import org.mongodb.morphia.annotations.Entity;
+import org.mongodb.morphia.annotations.Id;
 import play.Logger;
 import play.libs.Json;
-import scala.collection.immutable.HashMap;
-import scala.collection.immutable.Map;
-import scala.util.parsing.json.JSONObject;
+
 
 import static utils.Constants.*;
 
-//@Entity(value="Ansible", noClassnameStored = true)
+@Entity(value="Ansible", noClassnameStored = true)
 public class InitAnsible {
-    //@Id
+    @Id
+    private String InventoryId;
+    private String ProjectId;
+    private String JobTemplateId;
+
     private Integer responseStatus;
     private String IPADDRESS;
     private RestClient RC;
@@ -76,11 +77,11 @@ public class InitAnsible {
                 String scmurl = scm_url.substring(1, scm_url.length()-1);
                 String playbookName = String.valueOf(a.get("playbook"));
                 String playbookname = playbookName.substring(1, playbookName.length()-1);
-                String InventoryId = CreateInventory();
+                InventoryId = CreateInventory();
                 System.out.println("INVENTORY Id :" + InventoryId);
-                String ProjectId = CreateProject(scmurl);
+                ProjectId = CreateProject(scmurl);
                 System.out.println("PROJECT Id :" + ProjectId);
-                String JobTemplateId = CreateJobTemplate(InventoryId, ProjectId, playbookname);
+                JobTemplateId = CreateJobTemplate(InventoryId, ProjectId, playbookname);
                 System.out.println("JOB TEMPLATE Id :" + JobTemplateId);
             }
 
