@@ -13,7 +13,7 @@ import java.util.Optional;
 public class AnsibleDAO extends BasicDAO<Ansible, String> implements IAnsibleDAO{
 
     @Inject
-    public AnsibleDAO(Datastore ds){
+    protected AnsibleDAO(Datastore ds) {
         super(ds);
     }
 
@@ -36,6 +36,4 @@ public class AnsibleDAO extends BasicDAO<Ansible, String> implements IAnsibleDAO
     public Optional<Ansible> getjobtemplateid(String jobtemplateid) {
         return Optional.empty();
     }
-
-
 }

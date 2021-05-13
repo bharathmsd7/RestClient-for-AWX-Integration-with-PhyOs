@@ -4,16 +4,15 @@ import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Indexed;
 
+import javax.inject.Inject;
+
 @Entity(value="Ansible", noClassnameStored = true)
 public class Ansible {
 
     @Id
     private String name;
-    @Indexed
     private String inventoryid;
-    @Indexed
     private String projectid;
-    @Indexed
     private String jobtemplateid;
 
     public Ansible(String name, String inventoryid, String projectid, String jobtemplateid){
@@ -23,6 +22,7 @@ public class Ansible {
         this.jobtemplateid = jobtemplateid;
     }
 
+    @Inject
     public Ansible(){}
 
     public String getName() {

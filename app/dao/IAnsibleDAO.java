@@ -2,10 +2,14 @@ package dao;
 
 import com.google.inject.ImplementedBy;
 import methods.Ansible;
+import org.mongodb.morphia.Key;
+
 import java.util.Optional;
 
 @ImplementedBy(AnsibleDAO.class)
 public interface IAnsibleDAO {
+
+    Key<Ansible> save(Ansible key);
 
     Optional<Ansible> getName(String name);
 

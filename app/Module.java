@@ -7,7 +7,7 @@ public class Module extends AbstractModule {
 
 
     @Override
-    protected void configure() {
+    public void configure() {
         try {
             bind(IAnsibleDAO.class).toConstructor(AnsibleDAO.class.getDeclaredConstructor(Datastore.class));
         }
