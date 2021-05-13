@@ -11,17 +11,21 @@ import com.typesafe.config.Config;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
+import dao.IAnsibleDAO;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
+import org.mongodb.morphia.dao.DAO;
 import play.Logger;
 import play.libs.Json;
 
 
 import static utils.Constants.*;
 
-@Entity(value="Ansible", noClassnameStored = true)
+
 public class InitAnsible {
-    @Id
+
+    @Inject
+    private IAnsibleDAO iAnsibleDAO;
     private String InventoryId;
     private String ProjectId;
     private String JobTemplateId;
@@ -55,34 +59,36 @@ public class InitAnsible {
 
         if (responseStatus == 200)
         {
-            /*String scm_url = "https://github.com/ansible/test-playbooks.git";
-            String playbookName = "hello world.yml";
-            String HostIP = "192.168.1.73";
-            String InventoryId = CreateInventory();
-            System.out.println("INVENTORY Id :" + InventoryId);
-            String ProjectId = CreateProject(scm_url);
-            System.out.println("PROJECT Id :" + ProjectId);
-            String JobTemplateId = CreateJobTemplate(InventoryId, ProjectId, playbookName);
-            System.out.println("JOB TEMPLATE Id :" + JobTemplateId);
-            UpdateInventory(InventoryId, HostIP);
-            LaunchJobTemplate(JobTemplateId);*/
-
             ANSIBLE_PRODUCTS = CONFIG.getConfig("ANSIBLE_PRODUCTS");
             ANSIBLEPRODUCTSLISTS = CONFIG.getStringList("ANSIBLEPRODUCTSLISTS");
             ObjectNode ansibleconf = (ObjectNode) Json.toJson(ANSIBLE_PRODUCTS.root().unwrapped());
 
             for (Object t : ANSIBLEPRODUCTSLISTS){
+
+                Ansible ansible = new Ansible();
+                String appName = t.toString();
+
                 JsonNode a = ansibleconf.get(t.toString());
                 String scm_url = String.valueOf(a.get("scmurl"));
                 String scmurl = scm_url.substring(1, scm_url.length()-1);
                 String playbookName = String.valueOf(a.get("playbook"));
                 String playbookname = playbookName.substring(1, playbookName.length()-1);
                 InventoryId = CreateInventory();
+
                 System.out.println("INVENTORY Id :" + InventoryId);
                 ProjectId = CreateProject(scmurl);
+
                 System.out.println("PROJECT Id :" + ProjectId);
                 JobTemplateId = CreateJobTemplate(InventoryId, ProjectId, playbookname);
+
                 System.out.println("JOB TEMPLATE Id :" + JobTemplateId);
+
+                ansible.setName(appName);
+                ansible.setInventoryid(InventoryId);
+                ansible.setProjectid(ProjectId);
+                ansible.setJobtemplateid(JobTemplateId);
+                System.out.println(iAnsibleDAO);
+                iAnsibleDAO.save(ansible);
             }
 
         }

@@ -10,6 +10,7 @@ import javax.inject.Inject;
 public class Ansible {
 
     @Id
+    private String uId;
     private String name;
     private String inventoryid;
     private String projectid;
@@ -29,9 +30,7 @@ public class Ansible {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+    public void setName(String name) { this.name = name;}
 
     public String getInventoryid() {
         return inventoryid;
@@ -56,4 +55,5 @@ public class Ansible {
     public void setJobtemplateid(String jobtemplateid) {
         this.jobtemplateid = jobtemplateid;
     }
+
 }

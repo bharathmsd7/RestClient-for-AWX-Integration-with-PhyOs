@@ -1,6 +1,7 @@
 import com.google.inject.AbstractModule;
 import dao.AnsibleDAO;
 import dao.IAnsibleDAO;
+import methods.Mongoclient;
 import org.mongodb.morphia.Datastore;
 
 public class Module extends AbstractModule {
@@ -14,5 +15,6 @@ public class Module extends AbstractModule {
         catch (NoSuchMethodException e){
             e.printStackTrace();
         }
+        bind(Datastore.class).toInstance(Mongoclient.datastore());
     }
 }
