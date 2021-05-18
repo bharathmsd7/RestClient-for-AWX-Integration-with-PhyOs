@@ -2,9 +2,10 @@ package methods;
 
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
-import org.mongodb.morphia.annotations.Indexed;
 
 import javax.inject.Inject;
+import java.util.HashMap;
+import java.util.List;
 
 @Entity(value="Ansible", noClassnameStored = true)
 public class Ansible {
@@ -16,11 +17,14 @@ public class Ansible {
     private String projectid;
     private String jobtemplateid;
 
-    public Ansible(String name, String inventoryid, String projectid, String jobtemplateid){
+    private HashMap<String, List> ansibleproducts;
+
+    public Ansible(String name, String inventoryid, String projectid, String jobtemplateid, HashMap<String, List> ansibleproducts){
         this.name = name;
         this.inventoryid = inventoryid;
         this.projectid = projectid;
         this.jobtemplateid = jobtemplateid;
+        this.ansibleproducts = ansibleproducts;
     }
 
     @Inject
@@ -55,5 +59,12 @@ public class Ansible {
     public void setJobtemplateid(String jobtemplateid) {
         this.jobtemplateid = jobtemplateid;
     }
+
+    public void setAnsibleproducts(HashMap<String, List> ansibleproducts){ this.ansibleproducts = ansibleproducts; }
+
+    public HashMap<String, List> getAnsibleproducts(){
+        return ansibleproducts;
+    }
+
 
 }

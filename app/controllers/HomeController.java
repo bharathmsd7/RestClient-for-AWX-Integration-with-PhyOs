@@ -1,16 +1,14 @@
 package controllers;
 
-import jdk.nashorn.internal.runtime.regexp.joni.Config;
+
 import methods.InitAnsible;
 import play.mvc.*;
 import views.html.index;
 
-import play.libs.Json;
+
 import javax.inject.Inject;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
-import com.fasterxml.jackson.databind.JsonNode;
-import methods.InitAnsible.*;
 
 
 public class HomeController extends Controller {

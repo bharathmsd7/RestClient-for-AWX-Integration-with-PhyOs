@@ -1,20 +1,19 @@
 package methods;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import javax.inject.Inject;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.typesafe.config.Config;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
 import dao.IAnsibleDAO;
-import org.mongodb.morphia.annotations.Entity;
-import org.mongodb.morphia.annotations.Id;
-import org.mongodb.morphia.dao.DAO;
 import play.Logger;
 import play.libs.Json;
 
@@ -26,18 +25,13 @@ public class InitAnsible {
 
     @Inject
     private IAnsibleDAO iAnsibleDAO;
-    private String InventoryId;
-    private String ProjectId;
-    private String JobTemplateId;
 
     private Integer responseStatus;
     private String IPADDRESS;
-    private RestClient RC;
-    private Config CONFIG;
-
-    private Config ANSIBLE_PRODUCTS;
-    private List ANSIBLEPRODUCTSLISTS;
-
+    private final RestClient RC;
+    private final Config CONFIG;
+    private Ansible ansible = new Ansible();
+    ArrayList<String> idlist =new ArrayList<String>();
     @Inject
     public InitAnsible(RestClient rc, Config config)
     {
@@ -59,38 +53,51 @@ public class InitAnsible {
 
         if (responseStatus == 200)
         {
-            ANSIBLE_PRODUCTS = CONFIG.getConfig("ANSIBLE_PRODUCTS");
-            ANSIBLEPRODUCTSLISTS = CONFIG.getStringList("ANSIBLEPRODUCTSLISTS");
+
+            // Initial configuration for Ansible
+            /*Config ANSIBLE_PRODUCTS = CONFIG.getConfig("ANSIBLE_PRODUCTS");
+            List<String> ANSIBLEPRODUCTSLISTS = CONFIG.getStringList("ANSIBLEPRODUCTSLISTS");
             ObjectNode ansibleconf = (ObjectNode) Json.toJson(ANSIBLE_PRODUCTS.root().unwrapped());
 
+            HashMap<String, List> hashMap = new HashMap<>();
             for (Object t : ANSIBLEPRODUCTSLISTS){
 
-                Ansible ansible = new Ansible();
-                String appName = t.toString();
-
                 JsonNode a = ansibleconf.get(t.toString());
+
                 String scm_url = String.valueOf(a.get("scmurl"));
-                String scmurl = scm_url.substring(1, scm_url.length()-1);
+                scm_url = scm_url.substring(1, scm_url.length()-1);
                 String playbookName = String.valueOf(a.get("playbook"));
-                String playbookname = playbookName.substring(1, playbookName.length()-1);
-                InventoryId = CreateInventory();
+                playbookName= playbookName.substring(1, playbookName.length()-1);
 
-                System.out.println("INVENTORY Id :" + InventoryId);
-                ProjectId = CreateProject(scmurl);
+                String appName = t.toString();
+                String inventoryId = CreateInventory(appName);
+                String projectId = CreateProject(scm_url, appName);
+                String jobTemplateId = CreateJobTemplate(inventoryId, projectId, playbookName, appName);
 
-                System.out.println("PROJECT Id :" + ProjectId);
-                JobTemplateId = CreateJobTemplate(InventoryId, ProjectId, playbookname);
 
-                System.out.println("JOB TEMPLATE Id :" + JobTemplateId);
+                idlist.add(inventoryId);
+                idlist.add(projectId);
+                idlist.add(jobTemplateId);
+                ArrayList<String> templist =new ArrayList<String>();
+                if(idlist.size() > 3){
+                    templist.add(idlist.get(idlist.size()-3));
+                    templist.add(idlist.get(idlist.size()-2));
+                    templist.add(idlist.get(idlist.size()-1));
+                }
+                else{
+                    templist.addAll(idlist);
+                }
+                hashMap.put(appName, templist);
 
-                ansible.setName(appName);
-                ansible.setInventoryid(InventoryId);
-                ansible.setProjectid(ProjectId);
-                ansible.setJobtemplateid(JobTemplateId);
-                System.out.println(iAnsibleDAO);
-                iAnsibleDAO.save(ansible);
             }
+            ansible.setAnsibleproducts(hashMap);
+            iAnsibleDAO.save(ansible);
 
+            System.out.println("Added to DB");*/
+
+            // Update Inventory
+
+            System.out.println(ansible);
         }
         else{
             Logger.error("Response is not valid : ",responseStatus);
@@ -121,8 +128,8 @@ public class InitAnsible {
         }
     }
 
-    private String CreateInventory() {
-        String name = getRandomName();
+    private String CreateInventory(String appname) {
+        String name = getRandomName(appname);
         String SATA = "{\n" +
                 "  \"organization\": 1,\n" +
                 "  \"name\": \"%s\"\n"+
@@ -143,8 +150,8 @@ public class InitAnsible {
         return null;
     }
 
-    private String CreateProject(String scm_url) {
-        String name = getRandomName();
+    private String CreateProject(String scm_url, String appname) {
+        String name = getRandomName(appname);
         String SATA = "{\n" +
                 "  \"allow_override\": true,\n" +
                 "  \"name\": \"%s\",\n" +
@@ -165,8 +172,9 @@ public class InitAnsible {
         return null;
     }
 
-    private String CreateJobTemplate(String inventoryId, String projectId, String playbookName) {
-        String name = getRandomName();
+    private String CreateJobTemplate(String inventoryId, String projectId, String playbookName, String appname) {
+        String name = getRandomName(appname);
+        System.out.println(name);
         String SATA ="{\n" +
                 "  \"inventory\": \"%s\" ,\n" +
                 "  \"name\": \"%s\" ,\n" +
@@ -186,7 +194,7 @@ public class InitAnsible {
         return null;
     }
 
-    private String getRandomName() {
+    private String getRandomName(String appname) {
         String SALTCHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
         StringBuilder salt = new StringBuilder();
         Random rnd = new Random();
@@ -194,7 +202,8 @@ public class InitAnsible {
             int index = (int) (rnd.nextFloat() * SALTCHARS.length());
             salt.append(SALTCHARS.charAt(index));
         }
-        return (salt.toString());
+        String name = salt.toString();
+        return (appname+name);
     }
 
 }
