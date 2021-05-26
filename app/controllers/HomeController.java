@@ -1,7 +1,7 @@
 package controllers;
 
 
-import methods.InitAnsible;
+import methods.Ansible;
 import play.mvc.*;
 import views.html.index;
 
@@ -16,17 +16,17 @@ public class HomeController extends Controller {
     public restclient rc;
     public Integer responsestatus;
     private String ip = "http://192.168.1.72";
-    public InitAnsible initAnsible;
+    public Ansible ansible;
 
     @Inject
-    public HomeController (RestClient rc , InitAnsible initAnsible) {
+    public HomeController (RestClient rc , Ansible ansible) {
         this.rc = rc;
-        this.initAnsible = initAnsible;
+        this.ansible = ansible;
     }
 
     public Result index() throws InterruptedException, ExecutionException, TimeoutException {
         responsestatus = rc.getRequest(ip,"/api/v2/");
-        initAnsible.InitAnsibleSteps();
+        ansible.InitAnsibleSteps();
         return ok(index.render( responsestatus ));
     }
 

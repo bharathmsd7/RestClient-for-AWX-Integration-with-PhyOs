@@ -1,70 +1,197 @@
 package methods;
 
-import org.mongodb.morphia.annotations.Entity;
-import org.mongodb.morphia.annotations.Id;
-
+import java.util.*;
 import javax.inject.Inject;
-import java.util.HashMap;
-import java.util.List;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.typesafe.config.Config;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 
-@Entity(value="Ansible", noClassnameStored = true)
+import play.Logger;
+
+import static utils.Constants.*;
+
+
 public class Ansible {
 
-    @Id
-    private String uId;
-    private String name;
-    private String inventoryid;
-    private String projectid;
-    private String jobtemplateid;
-
-    private HashMap<String, List> ansibleproducts;
-
-    public Ansible(String name, String inventoryid, String projectid, String jobtemplateid, HashMap<String, List> ansibleproducts){
-        this.name = name;
-        this.inventoryid = inventoryid;
-        this.projectid = projectid;
-        this.jobtemplateid = jobtemplateid;
-        this.ansibleproducts = ansibleproducts;
-    }
-
+    private Integer responseStatus;
+    private String IPADDRESS;
+    private final RestClient RC;
+    private final Config CONFIG;
+    private AnsibleDatabase ansible = new AnsibleDatabase();
+    ArrayList<String> idlist =new ArrayList<String>();
     @Inject
-    public Ansible(){}
-
-    public String getName() {
-        return name;
+    public Ansible(RestClient rc, Config config)
+    {
+        this.RC = rc;
+        this.CONFIG = config;
     }
 
-    public void setName(String name) { this.name = name;}
+    public void InitAnsibleSteps()
+    {
+        IPADDRESS = CONFIG.getString("ANSIBLE_NODE_IP");
 
-    public String getInventoryid() {
-        return inventoryid;
+        try {
+            responseStatus = RC.getRequest(IPADDRESS, ANSIBLE_PING_PATH);
+            System.out.println("response : "+ responseStatus );
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            e.printStackTrace();
+            Logger.error("Unable to PING Ansible Tower : ", e);
+        }
+
+        if (responseStatus == 200)
+        {
+
+            // Initial configuration for Ansible
+            /*Config ANSIBLE_PRODUCTS = CONFIG.getConfig("ANSIBLE_PRODUCTS");
+            List<String> ANSIBLEPRODUCTSLISTS = CONFIG.getStringList("ANSIBLEPRODUCTSLISTS");
+            ObjectNode ansibleconf = (ObjectNode) Json.toJson(ANSIBLE_PRODUCTS.root().unwrapped());
+
+            HashMap<String, List> hashMap = new HashMap<>();
+            for (Object t : ANSIBLEPRODUCTSLISTS){
+
+                JsonNode a = ansibleconf.get(t.toString());
+
+                String scm_url = String.valueOf(a.get("scmurl"));
+                scm_url = scm_url.substring(1, scm_url.length()-1);
+                String playbookName = String.valueOf(a.get("playbook"));
+                playbookName= playbookName.substring(1, playbookName.length()-1);
+
+                String appName = t.toString();
+                String inventoryId = CreateInventory(appName);
+                String projectId = CreateProject(scm_url, appName);
+                String jobTemplateId = CreateJobTemplate(inventoryId, projectId, playbookName, appName);
+
+
+                idlist.add(inventoryId);
+                idlist.add(projectId);
+                idlist.add(jobTemplateId);
+                ArrayList<String> templist =new ArrayList<String>();
+                if(idlist.size() > 3){
+                    templist.add(idlist.get(idlist.size()-3));
+                    templist.add(idlist.get(idlist.size()-2));
+                    templist.add(idlist.get(idlist.size()-1));
+                }
+                else{
+                    templist.addAll(idlist);
+                }
+                hashMap.put(appName, templist);
+
+            }
+            ansible.setAnsibleproducts(hashMap);
+            iAnsibleDAO.save(ansible);
+
+            System.out.println("Added to DB");*/
+
+            // Update Inventory
+
+            //System.out.println(ansible);
+        }
+        else{
+            Logger.error("Response is not valid : ",responseStatus);
+        }
     }
 
-    public void setInventoryid(String inventoryid) {
-        this.inventoryid = inventoryid;
+    private void LaunchJobTemplate(String jobtemplateId) {
+        String PATH = ANSIBLE_JOB_TEMPLATE_PATH + jobtemplateId + "/launch/";
+        try {
+            String temp = RC.getRequestWithJson( IPADDRESS , PATH , ANSIBLE_TOWER_USERNAME, ANSIBLE_TOWER_PASSWORD);
+            System.out.println(temp);
+        } catch (InterruptedException | ExecutionException | TimeoutException e){
+            e.printStackTrace();
+        }
     }
 
-    public String getProjectid() {
-        return projectid;
+    private void UpdateInventory(String inventoryId, String hostIP) {
+        String SATA = "{\n" +
+                "  \"description\": \"Hello world\",\n" +
+                "  \"name\": \"%s\"\n" +
+                "}";
+        String DATA = String.format(SATA, hostIP);
+        String PATH = ANSIBLE_INVENTORY_PATH + inventoryId + "/hosts/";
+        try {
+            JsonNode temp = RC.postRequestWithData(IPADDRESS, PATH, DATA, ANSIBLE_TOWER_USERNAME, ANSIBLE_TOWER_PASSWORD);
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            e.printStackTrace();
+        }
     }
 
-    public void setProjectid(String projectid) {
-        this.projectid = projectid;
+    private String CreateInventory(String appname) {
+        String name = getRandomName(appname);
+        String SATA = "{\n" +
+                "  \"organization\": 1,\n" +
+                "  \"name\": \"%s\"\n"+
+                "}";
+        String DATA =  String.format(SATA, name);
+       
+        try {
+            JsonNode temp = RC.postRequestWithData(IPADDRESS, ANSIBLE_INVENTORY_PATH, DATA, ANSIBLE_TOWER_USERNAME, ANSIBLE_TOWER_PASSWORD);
+
+            if (temp != null)
+            {
+                return temp.get("id").asText();
+            }
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
-    public String getJobtemplateid() {
-        return jobtemplateid;
+    private String CreateProject(String scm_url, String appname) {
+        String name = getRandomName(appname);
+        String SATA = "{\n" +
+                "  \"allow_override\": true,\n" +
+                "  \"name\": \"%s\",\n" +
+                "  \"organization\": 1,\n" +
+                "  \"scm_type\": \"git\",\n" +
+                "  \"scm_url\": \"%s\"\n"+
+                "}";
+        String DATA =  String.format(SATA, name, scm_url);
+        //System.out.println(DATA);
+        try {
+            JsonNode temp = RC.postRequestWithData(IPADDRESS, ANSIBLE_PROJECT_PATH, DATA, ANSIBLE_TOWER_USERNAME, ANSIBLE_TOWER_PASSWORD);
+            if (temp != null) {
+                return temp.get("id").asText();
+            }
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
-    public void setJobtemplateid(String jobtemplateid) {
-        this.jobtemplateid = jobtemplateid;
+    private String CreateJobTemplate(String inventoryId, String projectId, String playbookName, String appname) {
+        String name = getRandomName(appname);
+        System.out.println(name);
+        String SATA ="{\n" +
+                "  \"inventory\": \"%s\" ,\n" +
+                "  \"name\": \"%s\" ,\n" +
+                "  \"organization\": 1,\n" +
+                "  \"playbook\": \"%s\" ,\n" +
+                "  \"project\": \"%s\" \n" +
+                "}";
+        String DATA =  String.format(SATA, inventoryId, name, playbookName, projectId);
+        try {
+            JsonNode temp = RC.postRequestWithData(IPADDRESS, ANSIBLE_JOB_TEMPLATE_PATH, DATA, ANSIBLE_TOWER_USERNAME, ANSIBLE_TOWER_PASSWORD);
+            if (temp != null) {
+                return temp.get("id").asText();
+            }
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
-    public void setAnsibleproducts(HashMap<String, List> ansibleproducts){ this.ansibleproducts = ansibleproducts; }
-
-    public HashMap<String, List> getAnsibleproducts(){
-        return ansibleproducts;
+    private String getRandomName(String appname) {
+        String SALTCHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        StringBuilder salt = new StringBuilder();
+        Random rnd = new Random();
+        while (salt.length() < 18) { // length of the random string.
+            int index = (int) (rnd.nextFloat() * SALTCHARS.length());
+            salt.append(SALTCHARS.charAt(index));
+        }
+        String name = salt.toString();
+        return (appname+name);
     }
-
 
 }
