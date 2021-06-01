@@ -3,23 +3,24 @@ package methods;
 import java.util.*;
 import javax.inject.Inject;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.typesafe.config.Config;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
-
+import dao.IAnsibleDAO;
 import play.Logger;
-
+import play.libs.Json;
 import static utils.Constants.*;
-
 
 public class Ansible {
 
-    private Integer responseStatus;
+    @Inject
+    private IAnsibleDAO iAnsibleDAO;
+
     private String IPADDRESS;
     private final RestClient RC;
     private final Config CONFIG;
-    private AnsibleDatabase ansible = new AnsibleDatabase();
-    ArrayList<String> idlist =new ArrayList<String>();
+
     @Inject
     public Ansible(RestClient rc, Config config)
     {
@@ -27,10 +28,10 @@ public class Ansible {
         this.CONFIG = config;
     }
 
-    public void InitAnsibleSteps()
+    public void initalAnsibleSetup()
     {
         IPADDRESS = CONFIG.getString("ANSIBLE_NODE_IP");
-
+        Integer responseStatus = 0;
         try {
             responseStatus = RC.getRequest(IPADDRESS, ANSIBLE_PING_PATH);
             System.out.println("response : "+ responseStatus );
@@ -41,51 +42,43 @@ public class Ansible {
 
         if (responseStatus == 200)
         {
-
             // Initial configuration for Ansible
-            /*Config ANSIBLE_PRODUCTS = CONFIG.getConfig("ANSIBLE_PRODUCTS");
+            /*
+            Config ANSIBLE_PRODUCTS = CONFIG.getConfig("ANSIBLE_PRODUCTS");
             List<String> ANSIBLEPRODUCTSLISTS = CONFIG.getStringList("ANSIBLEPRODUCTSLISTS");
             ObjectNode ansibleconf = (ObjectNode) Json.toJson(ANSIBLE_PRODUCTS.root().unwrapped());
 
-            HashMap<String, List> hashMap = new HashMap<>();
-            for (Object t : ANSIBLEPRODUCTSLISTS){
+            for (Object t : ANSIBLEPRODUCTSLISTS) {
 
                 JsonNode a = ansibleconf.get(t.toString());
 
                 String scm_url = String.valueOf(a.get("scmurl"));
-                scm_url = scm_url.substring(1, scm_url.length()-1);
+                scm_url = scm_url.substring(1, scm_url.length() - 1);
                 String playbookName = String.valueOf(a.get("playbook"));
-                playbookName= playbookName.substring(1, playbookName.length()-1);
+                playbookName = playbookName.substring(1, playbookName.length() - 1);
 
                 String appName = t.toString();
                 String inventoryId = CreateInventory(appName);
                 String projectId = CreateProject(scm_url, appName);
                 String jobTemplateId = CreateJobTemplate(inventoryId, projectId, playbookName, appName);
 
+                AnsibleDatabase ansibledatabase = new AnsibleDatabase();
+                ansibledatabase.setName(appName);
+                ansibledatabase.setInventoryid(inventoryId);
+                ansibledatabase.setProjectid(projectId);
+                ansibledatabase.setJobtemplateid(jobTemplateId);
 
-                idlist.add(inventoryId);
-                idlist.add(projectId);
-                idlist.add(jobTemplateId);
-                ArrayList<String> templist =new ArrayList<String>();
-                if(idlist.size() > 3){
-                    templist.add(idlist.get(idlist.size()-3));
-                    templist.add(idlist.get(idlist.size()-2));
-                    templist.add(idlist.get(idlist.size()-1));
-                }
-                else{
-                    templist.addAll(idlist);
-                }
-                hashMap.put(appName, templist);
+                iAnsibleDAO.save(ansible);
 
             }
-            ansible.setAnsibleproducts(hashMap);
-            iAnsibleDAO.save(ansible);
+            System.out.println("Added to DB");
+             */
 
-            System.out.println("Added to DB");*/
+            AnsibleDatabase ansibleDatabase = new AnsibleDatabase();
+            ansibleDatabase.getProjectid();
 
-            // Update Inventory
+            System.out.println("working");
 
-            //System.out.println(ansible);
         }
         else{
             Logger.error("Response is not valid : ",responseStatus);
@@ -123,7 +116,7 @@ public class Ansible {
                 "  \"name\": \"%s\"\n"+
                 "}";
         String DATA =  String.format(SATA, name);
-       
+
         try {
             JsonNode temp = RC.postRequestWithData(IPADDRESS, ANSIBLE_INVENTORY_PATH, DATA, ANSIBLE_TOWER_USERNAME, ANSIBLE_TOWER_PASSWORD);
 

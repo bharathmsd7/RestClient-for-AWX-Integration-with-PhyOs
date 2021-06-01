@@ -1,10 +1,8 @@
 package controllers;
 
-
 import methods.Ansible;
 import play.mvc.*;
 import views.html.index;
-
 
 import javax.inject.Inject;
 import java.util.concurrent.ExecutionException;
@@ -19,17 +17,15 @@ public class HomeController extends Controller {
     public Ansible ansible;
 
     @Inject
-    public HomeController (RestClient rc , Ansible ansible) {
+    public HomeController ( RestClient rc, Ansible ansible ) {
         this.rc = rc;
         this.ansible = ansible;
     }
 
     public Result index() throws InterruptedException, ExecutionException, TimeoutException {
         responsestatus = rc.getRequest(ip,"/api/v2/");
-        ansible.InitAnsibleSteps();
+        ansible.initalAnsibleSetup();
         return ok(index.render( responsestatus ));
     }
-
-
 
 }

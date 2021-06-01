@@ -1,5 +1,5 @@
-name := """RestClient"""
-organization := "egnaro"
+name := """Ansible-Phyos"""
+organization := "com.egnaro"
 
 version := "1.0-SNAPSHOT"
 

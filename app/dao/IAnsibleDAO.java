@@ -4,8 +4,6 @@ import com.google.inject.ImplementedBy;
 import methods.AnsibleDatabase;
 import org.mongodb.morphia.Key;
 
-import java.util.HashMap;
-import java.util.List;
 import java.util.Optional;
 
 @ImplementedBy(AnsibleDAO.class)
@@ -21,5 +19,5 @@ public interface IAnsibleDAO {
 
     Optional<AnsibleDatabase> getjobtemplateid(String jobtemplateid);
 
-    Optional<AnsibleDatabase> getAnsibleproducts (HashMap<String, List> products);
+
 }

@@ -1,15 +1,18 @@
 package methods;
 
+import dao.IAnsibleDAO;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
-
+import org.mongodb.morphia.query.Query;
+import org.mongodb.morphia.query.QueryResults;
+import org.mongodb.morphia.query.UpdateOperations;
 import javax.inject.Inject;
-import java.util.HashMap;
-import java.util.List;
 
 @Entity(value="Ansible", noClassnameStored = true)
 public class AnsibleDatabase {
 
+    @Inject
+    IAnsibleDAO iAnsibleDAO;
     @Id
     private String uId;
     private String name;
@@ -17,20 +20,20 @@ public class AnsibleDatabase {
     private String projectid;
     private String jobtemplateid;
 
-    private HashMap<String, List> ansibleproducts;
 
-    public AnsibleDatabase(String name, String inventoryid, String projectid, String jobtemplateid, HashMap<String, List> ansibleproducts){
+
+    public AnsibleDatabase(String name, String inventoryid, String projectid, String jobtemplateid){
         this.name = name;
         this.inventoryid = inventoryid;
         this.projectid = projectid;
         this.jobtemplateid = jobtemplateid;
-        this.ansibleproducts = ansibleproducts;
+
     }
 
     @Inject
     public AnsibleDatabase(){}
 
-    public String getName() {
+    public String getName(String name) {
         return name;
     }
 
@@ -56,15 +59,7 @@ public class AnsibleDatabase {
         return jobtemplateid;
     }
 
-    public void setJobtemplateid(String jobtemplateid) {
-        this.jobtemplateid = jobtemplateid;
-    }
-
-    public void setAnsibleproducts(HashMap<String, List> ansibleproducts){ this.ansibleproducts = ansibleproducts; }
-
-    public HashMap<String, List> getAnsibleproducts(){
-        return ansibleproducts;
-    }
+    public void setJobtemplateid(String jobtemplateid) { this.jobtemplateid = jobtemplateid; }
 
 
 }

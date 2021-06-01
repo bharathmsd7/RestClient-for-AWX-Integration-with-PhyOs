@@ -1,6 +1,4 @@
 package methods;
-
-
 import com.google.inject.Singleton;
 import com.mongodb.MongoClient;
 import com.typesafe.config.ConfigFactory;

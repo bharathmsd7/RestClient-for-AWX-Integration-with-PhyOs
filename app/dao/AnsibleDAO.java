@@ -6,15 +6,14 @@ import org.mongodb.morphia.dao.BasicDAO;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.util.HashMap;
-import java.util.List;
+
 import java.util.Optional;
 
 @Singleton
 public class AnsibleDAO extends BasicDAO<AnsibleDatabase, String> implements IAnsibleDAO{
 
     @Inject
-    protected AnsibleDAO(Datastore ds) {
+    public AnsibleDAO(Datastore ds) {
         super(ds);
     }
 
@@ -38,6 +37,4 @@ public class AnsibleDAO extends BasicDAO<AnsibleDatabase, String> implements IAn
         return Optional.empty();
     }
 
-    @Override
-    public  Optional<AnsibleDatabase> getAnsibleproducts(HashMap<String, List> products) { return Optional.empty(); }
 }
