@@ -21,7 +21,6 @@ public class AnsibleDatabase {
     private String jobtemplateid;
 
 
-
     public AnsibleDatabase(String name, String inventoryid, String projectid, String jobtemplateid){
         this.name = name;
         this.inventoryid = inventoryid;

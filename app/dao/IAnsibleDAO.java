@@ -17,7 +17,7 @@ public interface IAnsibleDAO {
 
     Optional<AnsibleDatabase> getProjectid(String projectid);
 
-    Optional<AnsibleDatabase> getjobtemplateid(String jobtemplateid);
+    Optional<AnsibleDatabase> getJobtemplateid(String jobtemplateid);
 
 
 }

@@ -33,7 +33,7 @@ public class AnsibleDAO extends BasicDAO<AnsibleDatabase, String> implements IAn
     }
 
     @Override
-    public Optional<AnsibleDatabase> getjobtemplateid(String jobtemplateid) {
+    public Optional<AnsibleDatabase> getJobtemplateid(String jobtemplateid) {
         return Optional.empty();
     }
 

@@ -75,7 +75,8 @@ public class Ansible {
              */
 
             AnsibleDatabase ansibleDatabase = new AnsibleDatabase();
-            //ansibleDatabase.getProjectid();
+            //
+           ansibleDatabase.getProjectid();
 
             System.out.println("working");
 
@@ -109,8 +110,8 @@ public class Ansible {
         }
     }
 
-    private String CreateInventory(String appname) {
-        String name = getRandomName(appname);
+    private String CreateInventory(String appName) {
+        String name = getRandomName(appName);
         String SATA = "{\n" +
                 "  \"organization\": 1,\n" +
                 "  \"name\": \"%s\"\n"+
@@ -131,8 +132,8 @@ public class Ansible {
         return null;
     }
 
-    private String CreateProject(String scm_url, String appname) {
-        String name = getRandomName(appname);
+    private String CreateProject(String scm_url, String appName) {
+        String name = getRandomName(appName);
         String SATA = "{\n" +
                 "  \"allow_override\": true,\n" +
                 "  \"name\": \"%s\",\n" +
@@ -153,8 +154,8 @@ public class Ansible {
         return null;
     }
 
-    private String CreateJobTemplate(String inventoryId, String projectId, String playbookName, String appname) {
-        String name = getRandomName(appname);
+    private String CreateJobTemplate(String inventoryId, String projectId, String playbookName, String appName) {
+        String name = getRandomName(appName);
         System.out.println(name);
         String SATA ="{\n" +
                 "  \"inventory\": \"%s\" ,\n" +
@@ -175,7 +176,7 @@ public class Ansible {
         return null;
     }
 
-    private String getRandomName(String appname) {
+    private String getRandomName(String appName) {
         String SALTCHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
         StringBuilder salt = new StringBuilder();
         Random rnd = new Random();
@@ -184,7 +185,7 @@ public class Ansible {
             salt.append(SALTCHARS.charAt(index));
         }
         String name = salt.toString();
-        return (appname+name);
+        return (appName+name);
     }
 
 }
