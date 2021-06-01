@@ -75,7 +75,7 @@ public class Ansible {
              */
 
             AnsibleDatabase ansibleDatabase = new AnsibleDatabase();
-            ansibleDatabase.getProjectid();
+            //ansibleDatabase.getProjectid();
 
             System.out.println("working");
 
