@@ -1,6 +1,7 @@
 package methods;
 
 import dao.IAnsibleDAO;
+import jdk.nashorn.internal.runtime.regexp.joni.ast.StringNode;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.query.Query;
@@ -26,7 +27,6 @@ public class AnsibleDatabase {
         this.inventoryid = inventoryid;
         this.projectid = projectid;
         this.jobtemplateid = jobtemplateid;
-
     }
 
     @Inject
@@ -47,7 +47,7 @@ public class AnsibleDatabase {
     }
 
     public String getProjectid() {
-        return projectid;
+        return  projectid;
     }
 
     public void setProjectid(String projectid) {

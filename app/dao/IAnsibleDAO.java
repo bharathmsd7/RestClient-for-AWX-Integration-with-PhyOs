@@ -11,13 +11,8 @@ public interface IAnsibleDAO {
 
     Key<AnsibleDatabase> save(AnsibleDatabase key);
 
-    Optional<AnsibleDatabase> getName(String name);
+    Optional<AnsibleDatabase> getAnsibleDatabaseByName(String appName);
 
-    Optional<AnsibleDatabase> getInventoryid(String inventoryid);
-
-    Optional<AnsibleDatabase> getProjectid(String projectid);
-
-    Optional<AnsibleDatabase> getJobtemplateid(String jobtemplateid);
 
 
 }

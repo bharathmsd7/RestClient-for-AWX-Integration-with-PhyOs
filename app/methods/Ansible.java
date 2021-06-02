@@ -7,6 +7,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.typesafe.config.Config;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
+
+import dao.AnsibleDAO;
 import dao.IAnsibleDAO;
 import play.Logger;
 import play.libs.Json;
@@ -43,7 +45,7 @@ public class Ansible {
         if (responseStatus == 200)
         {
             // Initial configuration for Ansible
-            /*
+
             Config ANSIBLE_PRODUCTS = CONFIG.getConfig("ANSIBLE_PRODUCTS");
             List<String> ANSIBLEPRODUCTSLISTS = CONFIG.getStringList("ANSIBLEPRODUCTSLISTS");
             ObjectNode ansibleconf = (ObjectNode) Json.toJson(ANSIBLE_PRODUCTS.root().unwrapped());
@@ -68,17 +70,10 @@ public class Ansible {
                 ansibledatabase.setProjectid(projectId);
                 ansibledatabase.setJobtemplateid(jobTemplateId);
 
-                iAnsibleDAO.save(ansible);
+                iAnsibleDAO.save(ansibledatabase);
 
             }
             System.out.println("Added to DB");
-             */
-
-            AnsibleDatabase ansibleDatabase = new AnsibleDatabase();
-            //
-           ansibleDatabase.getProjectid();
-
-            System.out.println("working");
 
         }
         else{
