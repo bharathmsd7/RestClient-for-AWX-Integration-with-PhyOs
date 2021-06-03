@@ -40,6 +40,7 @@ public class AnsibleService {
             Logger.error("Unable to PING Ansible Tower : ", e);
         }
 
+
         if (responseStatus == 200)
         {
             String inventoryID = null;
@@ -111,6 +112,7 @@ public class AnsibleService {
         }
         System.out.println("not working");
         return null;
+
     }
 
     private String UpdateJobTemplateWithCredentials(String jobtemplateid ,String name, String username, String password){
