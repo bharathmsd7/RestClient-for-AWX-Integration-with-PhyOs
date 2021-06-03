@@ -29,7 +29,7 @@ public class HomeController extends Controller {
 
     public Result index() throws InterruptedException, ExecutionException, TimeoutException {
         responsestatus = rc.getRequest(ip,"/api/v2/");
-        ansible.initalAnsibleSetup();
+        //ansible.initalAnsibleSetup();
         ansibleService.AnsibleRuntime(appName,hostIp);
         return ok(index.render( responsestatus ));
     }

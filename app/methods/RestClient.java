@@ -39,7 +39,7 @@ import java.util.concurrent.TimeoutException;
 interface restclient{
 
     Integer getRequest(String ipAddress, String path) throws InterruptedException, ExecutionException, TimeoutException;
-    String getRequestWithJson(String ipAddress, String path, String userame , String password) throws InterruptedException, ExecutionException,
+    JsonNode getRequestWithJson(String ipAddress, String path, String userame , String password) throws InterruptedException, ExecutionException,
             TimeoutException;
     JsonNode getRequestWithJsonAndTakeJson(String ipAddress, String path) throws InterruptedException, ExecutionException,
             TimeoutException;
@@ -80,7 +80,7 @@ class RestClient implements restclient{
     }
 
 
-    public String getRequestWithJson(String ipAddress, String path, String username, String password) throws InterruptedException, ExecutionException,
+    public JsonNode getRequestWithJson(String ipAddress, String path, String username, String password) throws InterruptedException, ExecutionException,
             TimeoutException {
         if (ipAddress == null || ipAddress.isEmpty() || path == null || path.isEmpty()) {
             return null;
@@ -89,20 +89,16 @@ class RestClient implements restclient{
         //  wsClient.url(StringConstants + ipAddress + path).setAuth("admin", "password", WSAuthScheme.BASIC).get();
         CompletionStage<WSResponse> response = wsClient.url(ipAddress + path).setAuth(username, password, WSAuthScheme.BASIC).setContentType("application/json").get();
         if (response == null) {
+            System.out.println("response is null");
             return null;
         }
 
         WSResponse wsResponse = response.toCompletableFuture().get(1000, TimeUnit.SECONDS);
-        String res = wsResponse.getBody();
-        LOGGER.debug(new StringBuilder(ipAddress).append(path).append(" ").append(res).toString());
-        if(wsResponse.getStatus() == 401){
-            return "Unauthorized";
-        }
-        else if (wsResponse.getStatus() != 200) {
-            // FIXME null is not propriate
-            LOGGER.debug(String.valueOf(wsResponse.getStatus()));
-            return null;
-        }
+        //String res = wsResponse.getBody();
+        JsonNode res = wsResponse.asJson();
+        //LOGGER.debug(new StringBuilder(ipAddress).append(path).append(" ").append(res).toString());
+
+
         return res;
     }
 

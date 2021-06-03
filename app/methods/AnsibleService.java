@@ -1,20 +1,17 @@
 package methods;
 
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.typesafe.config.Config;
 import dao.IAnsibleDAO;
 import play.Logger;
 import play.libs.Json;
-
 import javax.inject.Inject;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
-
-
 import static utils.Constants.*;
+
 
 public class AnsibleService {
 
@@ -52,7 +49,9 @@ public class AnsibleService {
             String username = null;
             String password = null;
             String name = null;
+            String jobId;
 
+            /*
             Optional<AnsibleDatabase> ansibleDatabase = iAnsibleDAO.getAnsibleDatabaseByName(appName);
             Config HostIp = CONFIG.getConfig("HOSTIP_CREDENTIALS");
             List<String> HostCredentials = CONFIG.getStringList("HOSTIPLIST");
@@ -85,15 +84,33 @@ public class AnsibleService {
                         System.out.println("Host with this Name and Inventory already exists.");
                     }
                     else{
-                        String jobId = LaunchJobTemplate(jobTemplateID);
+                        jobId = LaunchJobTemplate(jobTemplateID);
                         System.out.println(jobId);
                     }
                 }
             }
+
+             */
+
+            // JOB SUMMARY
+            String t = JobSummary("3");
+
         }
         else{
             Logger.error("Response is not valid : ",responseStatus);
         }
+    }
+
+    private String JobSummary(String jobId){
+        String PATH = ANISBLE_JOB_SUMMARY + jobId+"/";
+        try{
+            JsonNode temp = RC.getRequestWithJson(IPADDRESS, PATH, ANSIBLE_TOWER_USERNAME,ANSIBLE_TOWER_PASSWORD);
+            return temp.get("status").asText();
+        } catch (InterruptedException | ExecutionException | TimeoutException e){
+            e.printStackTrace();
+        }
+        System.out.println("not working");
+        return null;
     }
 
     private String UpdateJobTemplateWithCredentials(String jobtemplateid ,String name, String username, String password){
