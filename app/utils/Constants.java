@@ -11,4 +11,5 @@ public class Constants {
     public static final String ANSIBLE_HOSTS_PATH = "/api/v2/hosts/";
     public static final String ANSIBLE_CREDENTIALS_PATH = "/api/v2/credentials/";
 
+
 }

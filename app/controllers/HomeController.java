@@ -16,7 +16,7 @@ public class HomeController extends Controller {
     public Integer responsestatus;
     private String ip = "http://192.168.1.72";
     public AnsibleService ansibleService;
-    private String appName = "clamav";
+    private String appName = "gitlab";
     private String hostIp = "192.168.1.70";
     public Ansible ansible;
 
@@ -29,8 +29,8 @@ public class HomeController extends Controller {
 
     public Result index() throws InterruptedException, ExecutionException, TimeoutException {
         responsestatus = rc.getRequest(ip,"/api/v2/");
+        ansible.initalAnsibleSetup();
         ansibleService.AnsibleRuntime(appName,hostIp);
-        //ansible.initalAnsibleSetup();
         return ok(index.render( responsestatus ));
     }
 

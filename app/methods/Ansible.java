@@ -45,6 +45,7 @@ public class Ansible {
         if (responseStatus == 200)
         {
             // Initial configuration for Ansible
+            /*
             Config HostIp = CONFIG.getConfig("HOSTIP_CREDENTIALS");
             List<String> HostCredentials = CONFIG.getStringList("HOSTIPLIST");
             ObjectNode hostcredentials = (ObjectNode) Json.toJson(HostIp.root().unwrapped());
@@ -67,6 +68,8 @@ public class Ansible {
                 System.out.println(credentialsId);
             }
 
+
+             */
 
             Config ANSIBLE_PRODUCTS = CONFIG.getConfig("ANSIBLE_PRODUCTS");
             List<String> ANSIBLEPRODUCTSLISTS = CONFIG.getStringList("ANSIBLEPRODUCTSLISTS");
