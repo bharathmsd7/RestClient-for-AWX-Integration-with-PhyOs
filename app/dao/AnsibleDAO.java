@@ -21,7 +21,7 @@ public class AnsibleDAO extends BasicDAO<AnsibleDatabase, String> implements IAn
 
     @Override
     public Optional<AnsibleDatabase> getAnsibleDatabaseByName(String appName) {
-        Query<AnsibleDatabase> ansibleDatabaseQuery = this.createQuery().field("name").equal(appName);
+        Query<AnsibleDatabase> ansibleDatabaseQuery = this.createQuery().field("_id").equal(appName);
         QueryResults<AnsibleDatabase> ansibleDatabaseQueryResults = this.find(ansibleDatabaseQuery);
         return Optional.ofNullable(ansibleDatabaseQueryResults.get());
     }

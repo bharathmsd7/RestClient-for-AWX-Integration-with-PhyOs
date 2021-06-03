@@ -41,14 +41,32 @@ public class AnsibleService {
 
         if (responseStatus == 200)
         {
+            String inventoryID = null;
+            String projectID = null;
+            String jobTemplateID = null;
+            String credentialsID = null;
             Optional<AnsibleDatabase> ansibleDatabase = iAnsibleDAO.getAnsibleDatabaseByName(appName);
-            if (ansibleDatabase.isPresent()){
-                String inventoryID = ansibleDatabase.get().getInventoryid();
-                String projectID = ansibleDatabase.get().getProjectid();
-                String jobTemplateID = ansibleDatabase.get().getJobtemplateid();
-                System.out.println("inv:"+inventoryID+" pro:"+projectID+" job:"+jobTemplateID);
+            Optional<AnsibleDatabase> ansibleDatabase1 = iAnsibleDAO.getAnsibleDatabaseByName(hostip);
+            if (ansibleDatabase.isPresent() && ansibleDatabase1.isPresent()){
+                inventoryID = ansibleDatabase.get().getInventoryid();
+                projectID = ansibleDatabase.get().getProjectid();
+                jobTemplateID = ansibleDatabase.get().getJobtemplateid();
+                credentialsID = ansibleDatabase1.get().getCredentialsid();
+                System.out.println("inv:"+inventoryID+" pro:"+projectID+" job:"+jobTemplateID+" credentials: "+credentialsID);
             }
-
+            if (inventoryID != null && projectID != null && jobTemplateID != null){
+                String result = UpdateInventory(inventoryID, hostip);
+                System.out.println(result);
+                if (result!=null){
+                    if(result.equals("Already exists")){
+                        System.out.println("Host with this Name and Inventory already exists.");
+                    }
+                    else{
+                        String jobId = LaunchJobTemplate(jobTemplateID, credentialsID);
+                        System.out.println(jobId);
+                    }
+                }
+            }
         }
         else{
             Logger.error("Response is not valid : ",responseStatus);
@@ -56,17 +74,28 @@ public class AnsibleService {
     }
 
 
-    private void LaunchJobTemplate(String jobtemplateId) {
+    private String LaunchJobTemplate(String jobtemplateId, String credentialsId) {
         String PATH = ANSIBLE_JOB_TEMPLATE_PATH + jobtemplateId + "/launch/";
+        String SATA = "{\n" +
+                "  \"extra_vars\": {\n" +
+                "    \"credentials\": 7\n" +
+                "  }\n" +
+                "}";
+        String DATA = String.format(SATA, credentialsId);
         try {
-            String temp = RC.getRequestWithJson( IPADDRESS , PATH , ANSIBLE_TOWER_USERNAME, ANSIBLE_TOWER_PASSWORD);
-            System.out.println(temp);
+            JsonNode temp = RC.postRequestWithoutData( IPADDRESS , PATH , ANSIBLE_TOWER_USERNAME, ANSIBLE_TOWER_PASSWORD);
+            if (temp != null) {
+                return temp.get("id").asText();
+            }
         } catch (InterruptedException | ExecutionException | TimeoutException e){
             e.printStackTrace();
         }
+        return null;
     }
 
-    private void UpdateInventory(String inventoryId, String hostIP) {
+
+
+    private String UpdateInventory(String inventoryId, String hostIP) {
         String SATA = "{\n" +
                 "  \"description\": \"Hello world\",\n" +
                 "  \"name\": \"%s\"\n" +
@@ -75,8 +104,20 @@ public class AnsibleService {
         String PATH = ANSIBLE_INVENTORY_PATH + inventoryId + "/hosts/";
         try {
             JsonNode temp = RC.postRequestWithData(IPADDRESS, PATH, DATA, ANSIBLE_TOWER_USERNAME, ANSIBLE_TOWER_PASSWORD);
+            if (temp != null) {
+                String t = String.valueOf(temp.get("__all__"));
+                t = t.substring(1, t.length() - 1);
+                if(t.equals("Host with this Name and Inventory already exists.")){
+                    return "Already exists";
+                }
+                else{
+                    return temp.get("id").asText();
+                }
+            }
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             e.printStackTrace();
         }
+    return null;
     }
+
 }

@@ -14,5 +14,4 @@ public interface IAnsibleDAO {
     Optional<AnsibleDatabase> getAnsibleDatabaseByName(String appName);
 
 
-
 }

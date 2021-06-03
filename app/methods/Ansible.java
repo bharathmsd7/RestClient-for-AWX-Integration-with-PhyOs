@@ -45,6 +45,28 @@ public class Ansible {
         if (responseStatus == 200)
         {
             // Initial configuration for Ansible
+            Config HostIp = CONFIG.getConfig("HOSTIP_CREDENTIALS");
+            List<String> HostCredentials = CONFIG.getStringList("HOSTIPLIST");
+            ObjectNode hostcredentials = (ObjectNode) Json.toJson(HostIp.root().unwrapped());
+
+            for (Object host : HostCredentials){
+                JsonNode temp = hostcredentials.get(host.toString());
+                String username = String.valueOf(temp.get("username"));
+                //System.out.println(username);
+                username = username.substring(1, username.length()-1);
+                String password = String.valueOf(temp.get("password"));
+                //System.out.println(password);
+                password = password.substring(1, password.length()-1);
+                String name = host.toString();
+                System.out.println(name);
+                String credentialsId = CreateCredentials(name, username, password);
+                AnsibleDatabase ansibleDatabase = new AnsibleDatabase();
+                ansibleDatabase.setName(name);
+                ansibleDatabase.setCredentialsid(credentialsId);
+                iAnsibleDAO.save(ansibleDatabase);
+                System.out.println(credentialsId);
+            }
+
 
             Config ANSIBLE_PRODUCTS = CONFIG.getConfig("ANSIBLE_PRODUCTS");
             List<String> ANSIBLEPRODUCTSLISTS = CONFIG.getStringList("ANSIBLEPRODUCTSLISTS");
@@ -74,7 +96,6 @@ public class Ansible {
 
             }
             System.out.println("Added to DB");
-
         }
         else{
             Logger.error("Response is not valid : ",responseStatus);
@@ -103,6 +124,30 @@ public class Ansible {
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             e.printStackTrace();
         }
+    }
+
+    private String CreateCredentials(String credName,String userName, String password) {
+        String SATA = "{\n" +
+                "  \"name\": \"%s\",\n" +
+                "  \"credential_type\": 1,\n" +
+                "  \"inputs\": {\n" +
+                "    \"password\": \"%s\",\n" +
+                "    \"username\": \"%s\"\n" +
+                "  },\n" +
+                "  \"organization\": 1\n" +
+                "}";
+        String DATA = String.format(SATA, credName, password, userName);
+        try {
+            JsonNode temp = RC.postRequestWithData(IPADDRESS, ANSIBLE_CREDENTIALS_PATH, DATA, ANSIBLE_TOWER_USERNAME, ANSIBLE_TOWER_PASSWORD);
+            if (temp != null)
+            {
+                System.out.println(temp);
+                return temp.get("id").asText();
+            }
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     private String CreateInventory(String appName) {

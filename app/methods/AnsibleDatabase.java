@@ -15,18 +15,18 @@ public class AnsibleDatabase {
     @Inject
     IAnsibleDAO iAnsibleDAO;
     @Id
-    private String uId;
     private String name;
     private String inventoryid;
     private String projectid;
     private String jobtemplateid;
+    private String credentialsid;
 
-
-    public AnsibleDatabase(String name, String inventoryid, String projectid, String jobtemplateid){
+    public AnsibleDatabase(String name, String inventoryid, String projectid, String jobtemplateid, String credentialsid){
         this.name = name;
         this.inventoryid = inventoryid;
         this.projectid = projectid;
         this.jobtemplateid = jobtemplateid;
+        this.credentialsid = credentialsid;
     }
 
     @Inject
@@ -60,5 +60,7 @@ public class AnsibleDatabase {
 
     public void setJobtemplateid(String jobtemplateid) { this.jobtemplateid = jobtemplateid; }
 
+    public String getCredentialsid() { return credentialsid; }
 
+    public void setCredentialsid(String credentialsid) { this.credentialsid = credentialsid; }
 }

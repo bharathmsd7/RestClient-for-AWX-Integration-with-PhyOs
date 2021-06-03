@@ -49,7 +49,7 @@ interface restclient{
             ExecutionException, TimeoutException, IOException;
     Optional<String> getWithRetry(String ipAddress, String endpoint, int attempts, int timeout);
     String postRequestMultipartFormData(String ipAddress, String path, Map<String, File> fileData, Map<String, String> formData, int timeout, Http.Cookie cookie);
-    JsonNode postRequestWithoutData(String ipAddress, String path) throws InterruptedException,
+    JsonNode postRequestWithoutData(String ipAddress, String path,  String username, String password) throws InterruptedException,
             ExecutionException, TimeoutException;
     boolean isJsonValid(String test);
 }
@@ -292,8 +292,8 @@ class RestClient implements restclient{
         }
     }
 
-    public JsonNode postRequestWithoutData(String ipAddress, String path) throws InterruptedException,
-            ExecutionException, TimeoutException {
+    @Override
+    public JsonNode postRequestWithoutData(String ipAddress, String path, String username, String password) throws InterruptedException, ExecutionException, TimeoutException {
         if (ipAddress == null || ipAddress.isEmpty() || path == null || path.isEmpty()) {
             return null;
         }
@@ -305,6 +305,8 @@ class RestClient implements restclient{
         JsonNode res = response.toCompletableFuture().get(1000, TimeUnit.SECONDS).asJson();
         return res;
     }
+
+
 
     public boolean isJsonValid(String test) {
         try {
