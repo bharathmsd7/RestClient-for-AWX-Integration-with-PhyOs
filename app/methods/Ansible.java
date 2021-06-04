@@ -71,6 +71,13 @@ public class Ansible {
                 iAnsibleDAO.save(ansibledatabase);
 
             }
+            /*
+            List<String> runningJobsList = new ArrayList<>();
+            AnsibleDatabase ansibleDatabase = new AnsibleDatabase();
+            ansibleDatabase.setName("RunningJobsList");
+            ansibleDatabase.setRunningJobsList(runningJobsList);
+            iAnsibleDAO.save(ansibleDatabase);*/
+
             System.out.println("Added to DB");
         }
         else{

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.typesafe.config.Config;
 import dao.IAnsibleDAO;
+import org.mongodb.morphia.query.UpdateResults;
 import play.Logger;
 import play.libs.Json;
 import javax.inject.Inject;
@@ -86,24 +87,20 @@ public class AnsibleService {
                     else{
                         jobId = LaunchJobTemplate(jobTemplateID);
                         System.out.println("JobID : "+jobId);
+                        List<String> runningJobsList = new ArrayList<>();
+                        runningJobsList.add(jobId);
+                        AnsibleDatabase ansibleDatabase1 = new AnsibleDatabase();
+                        ansibleDatabase1.setName("RunningJobsList");
+                        ansibleDatabase1.setRunningJobsList(runningJobsList);
+                        iAnsibleDAO.save(ansibleDatabase1);
+
                     }
                 }
             }
             // JOB SUMMARY
-            boolean tr = true;
-            while(tr){
-                String t = JobSummary(jobId);
-                System.out.println("Job Events : "+ t);
-                assert t != null;
-                if((t.equals("failed")) || (t.equals("success"))){
-                    tr = false;
-                }
-            }
-        }
-        else{
-            Logger.error("Response is not valid : ",responseStatus);
 
         }
+        else Logger.error("Response is not valid : ", responseStatus);
     }
 
     private String JobEvents(String jobId){

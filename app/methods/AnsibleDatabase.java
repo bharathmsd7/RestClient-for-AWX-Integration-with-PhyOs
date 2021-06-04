@@ -8,6 +8,7 @@ import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.QueryResults;
 import org.mongodb.morphia.query.UpdateOperations;
 import javax.inject.Inject;
+import java.util.List;
 
 @Entity(value="Ansible", noClassnameStored = true)
 public class AnsibleDatabase {
@@ -19,14 +20,15 @@ public class AnsibleDatabase {
     private String inventoryid;
     private String projectid;
     private String jobtemplateid;
-    private String credentialsid;
 
-    public AnsibleDatabase(String name, String inventoryid, String projectid, String jobtemplateid, String credentialsid){
+    private List<String> runningJobsList;
+
+    public AnsibleDatabase(String name, String inventoryid, String projectid, String jobtemplateid,  List<String> runningJobsList){
         this.name = name;
         this.inventoryid = inventoryid;
         this.projectid = projectid;
         this.jobtemplateid = jobtemplateid;
-        this.credentialsid = credentialsid;
+        this.runningJobsList = runningJobsList;
     }
 
     @Inject
@@ -60,7 +62,8 @@ public class AnsibleDatabase {
 
     public void setJobtemplateid(String jobtemplateid) { this.jobtemplateid = jobtemplateid; }
 
-    public String getCredentialsid() { return credentialsid; }
+    public void setRunningJobsList(List<String> runningJobs) { this.runningJobsList = runningJobs; }
 
-    public void setCredentialsid(String credentialsid) { this.credentialsid = credentialsid; }
+    public List<String> getRunningJobsList() { return  runningJobsList; }
+
 }
