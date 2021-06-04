@@ -7,8 +7,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.typesafe.config.Config;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
-
-import dao.AnsibleDAO;
 import dao.IAnsibleDAO;
 import play.Logger;
 import play.libs.Json;
@@ -50,16 +48,16 @@ public class Ansible {
             List<String> ANSIBLEPRODUCTSLISTS = CONFIG.getStringList("ANSIBLEPRODUCTSLISTS");
             ObjectNode ansibleconf = (ObjectNode) Json.toJson(ANSIBLE_PRODUCTS.root().unwrapped());
 
-            for (Object t : ANSIBLEPRODUCTSLISTS) {
+            for (Object product : ANSIBLEPRODUCTSLISTS) {
 
-                JsonNode a = ansibleconf.get(t.toString());
+                JsonNode jsonNode = ansibleconf.get(product.toString());
 
-                String scm_url = String.valueOf(a.get("scmurl"));
+                String scm_url = String.valueOf(jsonNode.get("scmurl"));
                 scm_url = scm_url.substring(1, scm_url.length() - 1);
-                String playbookName = String.valueOf(a.get("playbook"));
+                String playbookName = String.valueOf(jsonNode.get("playbook"));
                 playbookName = playbookName.substring(1, playbookName.length() - 1);
 
-                String appName = t.toString();
+                String appName = product.toString();
                 String inventoryId = CreateInventory(appName);
                 String projectId = CreateProject(scm_url, appName);
                 String jobTemplateId = CreateJobTemplate(inventoryId, projectId, playbookName, appName);
@@ -82,15 +80,14 @@ public class Ansible {
 
     private String CreateInventory(String appName) {
         String name = getRandomName(appName);
-        String SATA = "{\n" +
+        String json = "{\n" +
                 "  \"organization\": 1,\n" +
                 "  \"name\": \"%s\"\n"+
                 "}";
-        String DATA =  String.format(SATA, name);
+        String DATA =  String.format(json, name);
 
         try {
             JsonNode temp = RC.postRequestWithData(IPADDRESS, ANSIBLE_INVENTORY_PATH, DATA, ANSIBLE_TOWER_USERNAME, ANSIBLE_TOWER_PASSWORD);
-
             if (temp != null)
             {
                 return temp.get("id").asText();
@@ -104,14 +101,14 @@ public class Ansible {
 
     private String CreateProject(String scm_url, String appName) {
         String name = getRandomName(appName);
-        String SATA = "{\n" +
+        String json = "{\n" +
                 "  \"allow_override\": true,\n" +
                 "  \"name\": \"%s\",\n" +
                 "  \"organization\": 1,\n" +
                 "  \"scm_type\": \"git\",\n" +
                 "  \"scm_url\": \"%s\"\n"+
                 "}";
-        String DATA =  String.format(SATA, name, scm_url);
+        String DATA =  String.format(json, name, scm_url);
         //System.out.println(DATA);
         try {
             JsonNode temp = RC.postRequestWithData(IPADDRESS, ANSIBLE_PROJECT_PATH, DATA, ANSIBLE_TOWER_USERNAME, ANSIBLE_TOWER_PASSWORD);
@@ -127,14 +124,14 @@ public class Ansible {
     private String CreateJobTemplate(String inventoryId, String projectId, String playbookName, String appName) {
         String name = getRandomName(appName);
         System.out.println(name);
-        String SATA ="{\n" +
+        String json ="{\n" +
                 "  \"inventory\": \"%s\" ,\n" +
                 "  \"name\": \"%s\" ,\n" +
                 "  \"organization\": 1,\n" +
                 "  \"playbook\": \"%s\" ,\n" +
                 "  \"project\": \"%s\" \n" +
                 "}";
-        String DATA =  String.format(SATA, inventoryId, name, playbookName, projectId);
+        String DATA =  String.format(json, inventoryId, name, playbookName, projectId);
         try {
             JsonNode temp = RC.postRequestWithData(IPADDRESS, ANSIBLE_JOB_TEMPLATE_PATH, DATA, ANSIBLE_TOWER_USERNAME, ANSIBLE_TOWER_PASSWORD);
             if (temp != null) {

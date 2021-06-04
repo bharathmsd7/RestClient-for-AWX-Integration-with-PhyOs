@@ -52,7 +52,6 @@ public class AnsibleService {
             String name = null;
             String jobId;
 
-            /*
             Optional<AnsibleDatabase> ansibleDatabase = iAnsibleDAO.getAnsibleDatabaseByName(appName);
             Config HostIp = CONFIG.getConfig("HOSTIP_CREDENTIALS");
             List<String> HostCredentials = CONFIG.getStringList("HOSTIPLIST");
@@ -60,11 +59,11 @@ public class AnsibleService {
 
             for (Object host : HostCredentials) {
                 if(host.equals(hostip)){
-                    JsonNode temp = hostcredentials.get(host.toString());
-                    username = String.valueOf(temp.get("username"));
+                    JsonNode jsonNode = hostcredentials.get(host.toString());
+                    username = String.valueOf(jsonNode.get("username"));
                     //System.out.println(username);
                     username = username.substring(1, username.length() - 1);
-                    password = String.valueOf(temp.get("password"));
+                    password = String.valueOf(jsonNode.get("password"));
                     password = password.substring(1, password.length() - 1);
                     name = getRandomName(host.toString());
                 }
@@ -78,7 +77,7 @@ public class AnsibleService {
             }
             if (inventoryID != null && projectID != null && jobTemplateID != null){
                 String result = UpdateInventory(inventoryID, hostip);
-                String result1 = UpdateJobTemplateWithCredentials(jobTemplateID, name, username,password);
+                String result1 = UpdateJobTemplateWithCredentials(jobTemplateID, name, username, password);
                 //System.out.println(result);
                 if (result!=null){
                     if(result.equals("Already exists")){
@@ -90,9 +89,6 @@ public class AnsibleService {
                     }
                 }
             }
-
-             */
-
             // JOB SUMMARY
             String t = JobSummary("3");
 
@@ -117,7 +113,7 @@ public class AnsibleService {
 
     private String UpdateJobTemplateWithCredentials(String jobtemplateid ,String name, String username, String password){
             String PATH = ANSIBLE_JOB_TEMPLATE_PATH + jobtemplateid + "/credentials/";
-            String SATA = "{\n" +
+            String json = "{\n" +
                     "  \"credential_type\": 1,\n" +
                     "  \"name\": \"%s\",\n" +
                     "  \"organization\":  1,\n" +
@@ -126,13 +122,13 @@ public class AnsibleService {
                     "  \"username\": \"%s\" \n" +
                     "  },\n" +
                     "}";
-            String DATA = String.format(SATA,name, password, username);
+            String DATA = String.format(json, name, password, username);
             System.out.println(DATA);
         try {
-            JsonNode temp = RC.postRequestWithData(IPADDRESS, PATH, DATA, ANSIBLE_TOWER_USERNAME, ANSIBLE_TOWER_PASSWORD);
-            if (temp != null) {
-                System.out.println(temp);
-                return temp.get("id").asText();
+            JsonNode res = RC.postRequestWithData(IPADDRESS, PATH, DATA, ANSIBLE_TOWER_USERNAME, ANSIBLE_TOWER_PASSWORD);
+            if (res != null) {
+                System.out.println(res);
+                return res.get("id").asText();
 
             }
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
@@ -156,16 +152,16 @@ public class AnsibleService {
     }
 
     private String UpdateInventory(String inventoryId, String hostIP) {
-        String SATA = "{\n" +
+        String json = "{\n" +
                 "  \"description\": \"Hello world\",\n" +
                 "  \"name\": \"%s\"\n" +
                 "}";
-        String DATA = String.format(SATA, hostIP);
+        String DATA = String.format(json, hostIP);
         String PATH = ANSIBLE_INVENTORY_PATH + inventoryId + "/hosts/";
         try {
-            JsonNode temp = RC.postRequestWithData(IPADDRESS, PATH, DATA, ANSIBLE_TOWER_USERNAME, ANSIBLE_TOWER_PASSWORD);
-            if (temp != null) {
-                String t = String.valueOf(temp.get("__all__"));
+            JsonNode res = RC.postRequestWithData(IPADDRESS, PATH, DATA, ANSIBLE_TOWER_USERNAME, ANSIBLE_TOWER_PASSWORD);
+            if (res != null) {
+                String t = String.valueOf(res.get("__all__"));
                 t = t.substring(1, t.length() - 1);
 
                 if(t.equals("Host with this Name and Inventory already exists.")){
@@ -173,7 +169,7 @@ public class AnsibleService {
                 }
                 else{
                     //System.out.println(temp);
-                    return temp.get("id").asText();
+                    return res.get("id").asText();
                 }
             }
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
