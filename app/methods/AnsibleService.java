@@ -50,7 +50,7 @@ public class AnsibleService {
             String username = null;
             String password = null;
             String name = null;
-            String jobId;
+            String jobId = null;
 
             Optional<AnsibleDatabase> ansibleDatabase = iAnsibleDAO.getAnsibleDatabaseByName(appName);
             Config HostIp = CONFIG.getConfig("HOSTIP_CREDENTIALS");
@@ -73,7 +73,7 @@ public class AnsibleService {
                 projectID = ansibleDatabase.get().getProjectid();
                 jobTemplateID = ansibleDatabase.get().getJobtemplateid();
 
-                System.out.println("inv:"+inventoryID+" pro:"+projectID+" job:"+jobTemplateID);
+                System.out.println("InventoryID : "+inventoryID+" ProjectID: "+projectID+" JobTemplateID:"+jobTemplateID);
             }
             if (inventoryID != null && projectID != null && jobTemplateID != null){
                 String result = UpdateInventory(inventoryID, hostip);
@@ -85,49 +85,63 @@ public class AnsibleService {
                     }
                     else{
                         jobId = LaunchJobTemplate(jobTemplateID);
-                        System.out.println(jobId);
+                        System.out.println("JobID : "+jobId);
                     }
                 }
             }
             // JOB SUMMARY
-            String t = JobSummary("3");
-
+            boolean tr = true;
+            while(tr){
+                String t = JobSummary(jobId);
+                System.out.println("Job Events : "+ t);
+                assert t != null;
+                if((t.equals("failed")) || (t.equals("success"))){
+                    tr = false;
+                }
+            }
         }
         else{
             Logger.error("Response is not valid : ",responseStatus);
+
         }
     }
 
+    private String JobEvents(String jobId){
+        String PATH = ANISBLE_JOBS + jobId+"/job_events/";
+        try{
+            JsonNode temp = RC.getRequestWithJson(IPADDRESS, PATH, ANSIBLE_TOWER_USERNAME,ANSIBLE_TOWER_PASSWORD);
+            System.out.println(temp);
+            return temp.get("stdout").asText();
+        } catch (InterruptedException | ExecutionException | TimeoutException e){
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
     private String JobSummary(String jobId){
-        String PATH = ANISBLE_JOB_SUMMARY + jobId+"/";
+        String PATH = ANISBLE_JOBS + jobId+"/";
         try{
             JsonNode temp = RC.getRequestWithJson(IPADDRESS, PATH, ANSIBLE_TOWER_USERNAME,ANSIBLE_TOWER_PASSWORD);
             return temp.get("status").asText();
         } catch (InterruptedException | ExecutionException | TimeoutException e){
             e.printStackTrace();
         }
-        System.out.println("not working");
+
         return null;
 
     }
 
     private String UpdateJobTemplateWithCredentials(String jobtemplateid ,String name, String username, String password){
             String PATH = ANSIBLE_JOB_TEMPLATE_PATH + jobtemplateid + "/credentials/";
-            String json = "{\n" +
-                    "  \"credential_type\": 1,\n" +
-                    "  \"name\": \"%s\",\n" +
-                    "  \"organization\":  1,\n" +
-                    "  \"inputs\": {\n" +
-                    "  \"password\": \"%s\",\n" +
-                    "  \"username\": \"%s\" \n" +
-                    "  },\n" +
-                    "}";
-            String DATA = String.format(json, name, password, username);
-            System.out.println(DATA);
+
+            String Json = "{\"credential_type\":1, \"name\":\"%s\", \"organization\":1, \"inputs\": { \"password\":\"%s\",\"username\":\"%s\"}}";
+            String DATA = String.format(Json, name, password, username);
+            //System.out.println(DATA);
         try {
             JsonNode res = RC.postRequestWithData(IPADDRESS, PATH, DATA, ANSIBLE_TOWER_USERNAME, ANSIBLE_TOWER_PASSWORD);
             if (res != null) {
-                System.out.println(res);
+                //System.out.println(res);
                 return res.get("id").asText();
 
             }

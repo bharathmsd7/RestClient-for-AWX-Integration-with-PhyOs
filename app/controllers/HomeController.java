@@ -16,8 +16,8 @@ public class HomeController extends Controller {
     public Integer responsestatus;
     private String ip = "http://192.168.1.72";
     public AnsibleService ansibleService;
-    private String appName = "gitlab";
-    private String hostIp = "192.168.1.70";
+    private String appName = "clustercontrol";
+    private String hostIp = "192.168.1.180";
     public Ansible ansible;
 
     @Inject
